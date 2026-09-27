@@ -16,6 +16,9 @@
  * Delete asks for confirmation first (irreversible). Action errors surface as a
  * small inline message on the affected row.
  *
+ * Each row carries a selection checkbox; the selection itself is owned by
+ * PlansBrowser (it spans "Show more" pages and drives the bulk actions).
+ *
  * Mobile-first: rows render as stacked cards on phones and as a table-like grid
  * from ~720px.
  */
@@ -41,16 +44,24 @@ export interface PlansTableProps {
   onStatusChanged: (planId: string, status: PlanRow["status"]) => void;
   /** A delete committed — the owner of `plans` should drop the row. */
   onDeleted: (planId: string) => void;
+  /** Ids currently selected for a bulk action. */
+  selectedIds: ReadonlySet<string>;
+  /** A row checkbox changed. */
+  onToggleSelected: (planId: string, selected: boolean) => void;
 }
 
 function PlanRowItem({
   plan,
   onStatusChanged,
   onDeleted,
+  selected,
+  onToggleSelected,
 }: {
   plan: PlanRow;
   onStatusChanged: PlansTableProps["onStatusChanged"];
   onDeleted: PlansTableProps["onDeleted"];
+  selected: boolean;
+  onToggleSelected: PlansTableProps["onToggleSelected"];
 }) {
   const router = useRouter();
   const t = useTranslations("lpAdmin.plans.table");
@@ -104,7 +115,21 @@ function PlanRowItem({
   }
 
   return (
-    <li className={styles.row} data-pending={pending ? "" : undefined}>
+    <li
+      className={styles.row}
+      data-pending={pending ? "" : undefined}
+      data-selected={selected ? "" : undefined}
+    >
+      <div className={styles.cellSelect}>
+        <input
+          type="checkbox"
+          className={styles.checkbox}
+          checked={selected}
+          onChange={(e) => onToggleSelected(plan.id, e.target.checked)}
+          aria-label={t("select", { title: plan.title })}
+        />
+      </div>
+
       <div className={styles.cellTitle}>
         <Link href={`/admin/plans/${plan.slug}/edit`} className={styles.title}>
           {plan.title}
@@ -170,6 +195,8 @@ export default function PlansTable({
   plans,
   onStatusChanged,
   onDeleted,
+  selectedIds,
+  onToggleSelected,
 }: PlansTableProps) {
   const t = useTranslations("lpAdmin.plans");
 
@@ -180,6 +207,7 @@ export default function PlansTable({
   return (
     <ul className={styles.list}>
       <li className={styles.headerRow} aria-hidden="true">
+        <span />
         <span>{t("table.plan")}</span>
         <span>{t("table.details")}</span>
         <span>{t("table.status")}</span>
@@ -191,6 +219,8 @@ export default function PlansTable({
           plan={plan}
           onStatusChanged={onStatusChanged}
           onDeleted={onDeleted}
+          selected={selectedIds.has(plan.id)}
+          onToggleSelected={onToggleSelected}
         />
       ))}
     </ul>

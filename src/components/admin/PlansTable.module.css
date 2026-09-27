@@ -38,6 +38,26 @@
   pointer-events: none;
 }
 
+/* Selected rows get a blue edge so a long selection stays scannable. */
+.row[data-selected] {
+  border-color: var(--light-blue);
+  background: var(--light-blue-30);
+}
+
+.cellSelect {
+  display: flex;
+  align-items: center;
+}
+
+/* A little larger than the browser default so it is easy to tap. */
+.checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--electric-blue);
+  cursor: pointer;
+}
+
 .cellTitle {
   display: flex;
   flex-direction: column;
@@ -152,7 +172,7 @@
 @media (min-width: 720px) {
   .headerRow {
     display: grid;
-    grid-template-columns: 2.5fr 2fr 1fr 2fr;
+    grid-template-columns: 1.5rem 2.5fr 2fr 1fr 2fr;
     align-items: center;
     gap: 1rem;
     padding: 0.5rem 1rem;
@@ -172,7 +192,7 @@
 
   .row {
     display: grid;
-    grid-template-columns: 2.5fr 2fr 1fr 2fr;
+    grid-template-columns: 1.5rem 2.5fr 2fr 1fr 2fr;
     align-items: center;
     gap: 1rem;
   }

@@ -118,7 +118,8 @@
         "delete": "Futa",
         "confirmDelete": "Futa \"{title}\"? Hili haliwezi kutenduliwa.",
         "deleteConflict": "Imeshindwa kufuta mpango huu — huenda una historia ya matumizi au maoni. Ondoa kuchapisha badala yake.",
-        "genericError": "Hitilafu imetokea."
+        "genericError": "Hitilafu imetokea.",
+        "select": "Chagua \"{title}\""
       },
       "filters": {
         "searchLabel": "Tafuta mipango",
@@ -154,6 +155,32 @@
         "save": "Hifadhi mabadiliko",
         "cancel": "Ghairi",
         "contentLockedNote": "Mpango huu ulitengenezwa na AI Studio: walimu wanaona hati maalum inayotokana na maudhui yake yaliyopangwa, hivyo mabadiliko ya Markdown hapa hayataonekana. Sehemu hii ni ya kusoma tu."
+      },
+      "bulk": {
+        "selectAll": "Chagua yote ({count, plural, one {mpango #} other {mipango #}})",
+        "selectedCount": "{count} imechaguliwa",
+        "publish": "Chapisha",
+        "unpublish": "Ondoa kuchapisha",
+        "delete": "Futa",
+        "download": "Pakua fomu za serikali (PDF)",
+        "clear": "Ondoa uchaguzi",
+        "working": "Inafanya kazi…",
+        "publishedCount": "{count, plural, one {Mpango #} other {Mipango #}} imechapishwa.",
+        "unpublishedCount": "{count, plural, one {Mpango #} other {Mipango #}} imerudishwa kuwa rasimu.",
+        "deletedCount": "{count, plural, one {Mpango #} other {Mipango #}} imefutwa.",
+        "blockedCount": "{count, plural, one {Mpango # haukufutwa} other {Mipango # haikufutwa}} kwa sababu walimu wameitumia au kuipa maoni — ondoa kuchapisha badala yake.",
+        "confirmDelete": "Futa {count, plural, one {mpango #} other {mipango #}}? Hili haliwezi kutenduliwa.",
+        "tooManyForms": "PDF moja inaweza kuwa na mipango {max} tu. Chagua mipango michache kisha jaribu tena.",
+        "error": "Hitilafu imetokea. Jaribu tena."
+      },
+      "forms": {
+        "back": "← Rudi kwenye mipango",
+        "heading": "Fomu za serikali",
+        "summary": "{count, plural, one {Fomu # iko tayari} other {Fomu # ziko tayari}} kupakuliwa kama PDF moja.",
+        "keepOpen": "Acha ukurasa huu wazi wakati PDF inaandaliwa — mipango mingi inaweza kuchukua dakika chache.",
+        "none": "Hakuna mpango uliochaguliwa. Rudi kwenye Mipango, chagua mipango unayotaka, kisha bofya Pakua fomu za serikali.",
+        "skipped": "{count, plural, one {Mpango # haukuwekwa} other {Mipango # haikuwekwa}} kwa sababu haina fomu ya serikali (haikutengenezwa na AI Studio):",
+        "download": "Pakua {count, plural, one {fomu #} other {fomu #}} kama PDF moja"
       }
     }
   }

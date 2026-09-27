@@ -37,6 +37,9 @@ import PrintButton from "./PrintButton";
 import styles from "./complianceDocument.module.css";
 
 /** The form's ruled blank for a hand-written delivery field. */
+/** Off-screen capture width for the landscape form (see PrintButton). */
+export const COMPLIANCE_STAGE_WIDTH = "320mm";
+
 function Rule({ short = false }: { short?: boolean }) {
   return (
     <span
@@ -118,25 +121,33 @@ export default function ComplianceDocument({
   form,
   fileName,
   downloadLabel,
+  showDownload = true,
 }: {
   form: ComplianceForm;
   fileName: string;
   /** Localised label for the download button (app chrome, unlike the form). */
   downloadLabel?: string;
+  /**
+   * Render the per-form download button. The batch forms page turns it off:
+   * there one button captures every form on the page into a single PDF.
+   */
+  showDownload?: boolean;
 }) {
   const [intro, competence, design, assessment] = form.steps;
 
   return (
     <div className={styles.doc} data-print-root>
-      <div className={styles.printBar}>
-        <PrintButton
-          className={styles.printButton}
-          fileName={fileName}
-          label={downloadLabel}
-          orientation="landscape"
-          stageWidth="320mm"
-        />
-      </div>
+      {showDownload ? (
+        <div className={styles.printBar}>
+          <PrintButton
+            className={styles.printButton}
+            fileName={fileName}
+            label={downloadLabel}
+            orientation="landscape"
+            stageWidth={COMPLIANCE_STAGE_WIDTH}
+          />
+        </div>
+      ) : null}
 
       {/* Sheet 1 — the identifying header. */}
       <Page>

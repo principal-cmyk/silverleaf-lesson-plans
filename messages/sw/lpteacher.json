@@ -58,6 +58,7 @@
     "versionLabel": "Toleo la andalio la somo",
     "versionBranded": "Andalio la somo",
     "versionGovernment": "Toleo la serikali",
-    "downloadGovernment": "Pakua toleo la serikali"
+    "downloadGovernment": "Pakua toleo la serikali",
+    "preparingPdfProgress": "Inaandaa PDF… ukurasa {page} kati ya {total}"
   }
 }

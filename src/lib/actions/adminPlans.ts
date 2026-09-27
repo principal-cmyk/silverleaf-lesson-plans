@@ -15,9 +15,10 @@ import { requireAdmin } from "@/lib/auth";
 import { actionFailure, type ActionResult } from "@/lib/contracts";
 import { db } from "@/lib/db";
 import { lessonPlans, type PlanStatus } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { buildSearchText } from "@/lib/lesson/searchText";
 import {
+  fetchPlanIds,
   fetchPlansPage,
   PAGE_SIZE,
   type PlanFilters,
@@ -68,6 +69,89 @@ export async function loadMorePlans(input: {
 
   const hasMore = rows.length > PAGE_SIZE;
   return { rows: hasMore ? rows.slice(0, PAGE_SIZE) : rows, hasMore };
+}
+
+/** Most plans one bulk call may touch — guards against runaway requests. */
+const MAX_BULK_PLANS = 1000;
+
+/** Validate a client-supplied id list: non-empty strings, de-duplicated, capped. */
+function cleanIds(ids: unknown): string[] | null {
+  if (!Array.isArray(ids)) return null;
+  const clean = [
+    ...new Set(ids.filter((id): id is string => typeof id === "string" && id.length > 0)),
+  ];
+  return clean.length > 0 && clean.length <= MAX_BULK_PLANS ? clean : null;
+}
+
+/**
+ * Ids of every plan matching the listing filters — the "Select all" control
+ * selects these, including rows "Show more" has not loaded yet.
+ */
+export async function listPlanIds(
+  filters: PlanFilters,
+): Promise<AdminActionResult & { ids?: string[] }> {
+  await requireAdmin();
+  try {
+    return { ok: true, ids: await fetchPlanIds(filters) };
+  } catch (err) {
+    return actionFailure("failed", { cause: err });
+  }
+}
+
+/** Publish or unpublish many plans in one UPDATE. */
+export async function bulkSetPlanStatus(
+  planIds: string[],
+  status: PlanStatus,
+): Promise<AdminActionResult & { updated?: number }> {
+  await requireAdmin();
+  const ids = cleanIds(planIds);
+  if (!ids || (status !== "published" && status !== "draft")) {
+    return actionFailure("invalid-input");
+  }
+
+  try {
+    const rows = await db
+      .update(lessonPlans)
+      .set({ status })
+      .where(inArray(lessonPlans.id, ids))
+      .returning();
+    revalidatePath(ADMIN_PLANS_PATH, "page");
+    return { ok: true, updated: rows.length };
+  } catch (err) {
+    return actionFailure("failed", { cause: err });
+  }
+}
+
+/**
+ * Delete many plans. Each is deleted on its own so one plan protected by
+ * usage/feedback history (the FK rejection {@link deletePlan} maps to
+ * "conflict") does not block the rest; the protected ids come back in
+ * `blocked` so the UI can say how many were kept.
+ */
+export async function bulkDeletePlans(
+  planIds: string[],
+): Promise<AdminActionResult & { deleted?: string[]; blocked?: string[] }> {
+  await requireAdmin();
+  const ids = cleanIds(planIds);
+  if (!ids) return actionFailure("invalid-input");
+
+  const deleted: string[] = [];
+  const blocked: string[] = [];
+  for (const id of ids) {
+    try {
+      const rows = await db
+        .delete(lessonPlans)
+        .where(eq(lessonPlans.id, id))
+        .returning();
+      if (rows.length > 0) deleted.push(id);
+    } catch (err) {
+      console.error("[action:bulkDeletePlans] kept", id, err);
+      blocked.push(id);
+    }
+  }
+
+  revalidatePath(ADMIN_PLANS_PATH, "page");
+  return { ok: true, deleted, blocked };
 }
 
 /** Flip a plan to `published`. */

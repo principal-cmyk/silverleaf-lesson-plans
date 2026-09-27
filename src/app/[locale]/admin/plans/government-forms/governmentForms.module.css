@@ -1,0 +1,71 @@
+/* governmentForms.module.css — batch government-form download page. */
+
+.back {
+  margin-bottom: 0.5rem;
+}
+
+.back a {
+  font-weight: 600;
+  color: var(--electric-blue);
+}
+
+.heading {
+  margin-bottom: 0.25rem;
+}
+
+.hint {
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  margin-bottom: 1rem;
+}
+
+.skipped {
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid #b54708;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.skipped ul {
+  margin: 0.375rem 0 0 1.25rem;
+}
+
+/* Sticky so the download button stays reachable while scrolling hundreds of
+   pages; it sits outside every [data-print-page], so it is never captured. */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 0;
+  background: var(--app-bg);
+}
+
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--white);
+  background: var(--electric-blue);
+  border: 1px solid var(--electric-blue);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.downloadButton:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.form + .form {
+  margin-top: 2rem;
+}

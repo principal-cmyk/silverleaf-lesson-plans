@@ -69,6 +69,7 @@ export default async function AdminPlansPage({
         initialPlans={rows}
         initialHasMore={initialHasMore}
         filters={filters}
+        total={total}
       />
     </div>
   );

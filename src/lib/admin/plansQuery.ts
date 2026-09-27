@@ -103,6 +103,25 @@ export async function fetchPlansPage(
     .offset(offset);
 }
 
+/**
+ * Ids of EVERY plan matching `filters`, in the same canonical order — backs the
+ * listing's "Select all", which must reach rows not yet loaded by "Show more".
+ */
+export async function fetchPlanIds(filters: PlanFilters): Promise<string[]> {
+  const rows = await db
+    .select({ id: lessonPlans.id })
+    .from(lessonPlans)
+    .where(whereFor(filters))
+    .orderBy(
+      asc(lessonPlans.gradeNum),
+      asc(lessonPlans.subject),
+      asc(lessonPlans.termOrdinal),
+      asc(lessonPlans.week),
+      asc(lessonPlans.lesson),
+    );
+  return rows.map((r) => r.id);
+}
+
 /** Total number of plans matching `filters` (for the header count). */
 export async function countPlans(filters: PlanFilters): Promise<number> {
   const rows = await db

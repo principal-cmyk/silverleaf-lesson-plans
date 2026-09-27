@@ -58,6 +58,7 @@
     "versionLabel": "Lesson plan version",
     "versionBranded": "Lesson plan",
     "versionGovernment": "Government version",
-    "downloadGovernment": "Download government version"
+    "downloadGovernment": "Download government version",
+    "preparingPdfProgress": "Preparing PDF… page {page} of {total}"
   }
 }
