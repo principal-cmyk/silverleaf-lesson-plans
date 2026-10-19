@@ -1,0 +1,115 @@
+/* bulkSlides.module.css — progress list for the batch slide download. */
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 0;
+  background: var(--app-bg);
+}
+
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--white);
+  background: var(--electric-blue);
+  border: 1px solid var(--electric-blue);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.downloadButton:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.progress {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.error {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  color: #b42318;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) auto;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+}
+
+.item + .item {
+  border-top: 1px solid var(--card-border);
+}
+
+.title {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.file {
+  color: var(--ink-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  justify-self: end;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--light-blue-30);
+  color: var(--electric-blue);
+}
+
+.status_ready {
+  background: #e6f6ea;
+  color: #1f6f43;
+}
+
+.status_basic {
+  background: #fff4d6;
+  color: #8a5a00;
+}
+
+.status_failed {
+  background: #fde8e7;
+  color: #b42318;
+}
+
+@media (max-width: 640px) {
+  .item {
+    grid-template-columns: 1fr;
+  }
+
+  .status {
+    justify-self: start;
+  }
+}

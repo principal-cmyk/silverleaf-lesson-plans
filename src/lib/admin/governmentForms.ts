@@ -22,6 +22,13 @@ export const GOVERNMENT_FORMS_PATH = "/admin/plans/government-forms";
  */
 export const LESSON_PLANS_PDF_PATH = "/admin/plans/lesson-plans";
 
+/**
+ * Admin route (locale-less) that builds the selected plans' slide decks as
+ * PowerPoint files (a ZIP of per-plan .pptx), generating any deck that does
+ * not exist yet. Same `?ids=` contract and cap as the forms page.
+ */
+export const SLIDES_PATH = "/admin/plans/slides";
+
 /** Build the forms-page href for a selection (ids travel in the query). */
 export function governmentFormsHref(planIds: readonly string[]): string {
   return `${GOVERNMENT_FORMS_PATH}?ids=${planIds.join(",")}`;

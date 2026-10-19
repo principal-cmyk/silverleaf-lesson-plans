@@ -22,3 +22,4 @@ export * from "./textbooks";
 export * from "./textbookPages";
 export * from "./promptParts";
 export * from "./appSettings";
+export * from "./lessonSlideDecks";

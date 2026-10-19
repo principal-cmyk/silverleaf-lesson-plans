@@ -43,6 +43,13 @@
       "when": 1784279411553,
       "tag": "0005_app_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792447364847,
+      "tag": "0006_lesson_slide_decks",
+      "breakpoints": true
     }
   ]
 }

@@ -37,6 +37,7 @@
     "papaparse": "^5.5.4",
     "pdf-to-img": "^6.2.0",
     "postgres": "^3.4.9",
+    "pptxgenjs": "^4.0.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "server-only": "^0.0.1",

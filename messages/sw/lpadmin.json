@@ -164,6 +164,7 @@
         "delete": "Futa",
         "download": "Pakua fomu za serikali (ZIP)",
         "downloadPlans": "Pakua mipango ya somo (ZIP)",
+        "downloadSlides": "Pakua slaidi (ZIP)",
         "clear": "Ondoa uchaguzi",
         "working": "Inafanya kazi…",
         "publishedCount": "{count, plural, one {Mpango #} other {Mipango #}} imechapishwa.",
@@ -191,6 +192,28 @@
         "none": "Hakuna mpango uliochaguliwa. Rudi kwenye Mipango, chagua mipango unayotaka, kisha bofya Pakua mipango ya somo.",
         "skipped": "{count, plural, one {Mpango # haukuwekwa} other {Mipango # haikuwekwa}} kwa sababu haina hati ya mpango wa somo (haikutengenezwa na AI Studio):",
         "download": "Pakua {count, plural, one {mpango # wa somo} other {mipango # ya somo}} (ZIP)"
+      },
+      "slides": {
+        "back": "← Rudi kwenye mipango",
+        "heading": "Slaidi (PowerPoint)",
+        "summary": "{count, plural, one {Wasilisho #} other {Mawasilisho #}}: {ready} tayari, {toGenerate} zitatengenezwa kwanza na AI.",
+        "costNote": "Kutengeneza wasilisho moja huchukua kama dakika moja na ombi moja la AI. Matatu hutengenezwa kwa wakati mmoja; kila moja huhifadhiwa, kwa hiyo halitengenezwi mara mbili.",
+        "noAi": "AI haijawekwa kwenye seva hii, kwa hiyo mipango isiyo na slaidi itapata slaidi za kawaida kutoka kwenye mpango.",
+        "keepOpen": "Acha ukurasa huu wazi mpaka upakuaji uanze.",
+        "none": "Hakuna mpango uliochaguliwa. Rudi kwenye Mipango, chagua mipango unayotaka, kisha bofya Pakua slaidi.",
+        "skipped": "{count, plural, one {Mpango # haukuwekwa} other {Mipango # haikuwekwa}} kwa sababu haikutengenezwa na AI Studio, kwa hiyo haina slaidi:",
+        "download": "Tengeneza na pakua {count, plural, one {wasilisho #} other {mawasilisho #}} (ZIP)",
+        "again": "Pakua tena",
+        "progress": "{done} kati ya {total} zimekamilika",
+        "noneMade": "Hakuna wasilisho lililoweza kutengenezwa. Jaribu tena baadaye.",
+        "status": {
+          "waiting": "Inasubiri",
+          "generating": "AI inatengeneza slaidi…",
+          "building": "Inatengeneza PowerPoint…",
+          "ready": "Tayari",
+          "basic": "Tayari — slaidi za kawaida (AI haikupatikana)",
+          "failed": "Imeshindikana"
+        }
       }
     }
   }

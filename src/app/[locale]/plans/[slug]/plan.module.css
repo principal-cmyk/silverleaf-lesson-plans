@@ -74,6 +74,30 @@
   color: var(--ink-muted);
 }
 
+/* "Teach this lesson" — opens the classroom slides. */
+.teachButton {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  margin-top: 0.5rem;
+  padding: 0 1.1rem;
+  border-radius: var(--radius-sm);
+  background: var(--electric-blue);
+  color: var(--white);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.teachButton:hover {
+  background: var(--navy-light);
+}
+
+.teachButton:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
 /* ── Objectives ────────────────────────────────────────────────────────── */
 .sectionHeading {
   font-size: 1.1rem;

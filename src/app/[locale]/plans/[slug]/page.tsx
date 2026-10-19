@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { lessonPlans, planFeedback } from "@/lib/db/schema";
 import { logUsage } from "@/lib/usage";
+import { Link } from "@/i18n/navigation";
 import FeedbackForm from "@/components/lesson/FeedbackForm";
 import ComplianceDocument from "@/components/lesson/document/ComplianceDocument";
 import LessonPlanDocument from "@/components/lesson/document/LessonPlanDocument";
@@ -49,6 +50,7 @@ export default async function PlanDetailPage({
   const user = await requireUser();
   const t = await getTranslations("lpPlan");
   const tc = await getTranslations("common");
+  const ts = await getTranslations("lpSlides");
 
   const [plan] = await db
     .select()
@@ -99,6 +101,11 @@ export default async function PlanDetailPage({
           <h1 className={styles.title}>{plan.title}</h1>
           <p className={styles.meta}>{formatPlanMeta(plan, t)}</p>
           {plan.topic ? <p className={styles.topic}>{plan.topic}</p> : null}
+          {structured.success ? (
+            <Link href={`/plans/${plan.slug}/teach`} className={styles.teachButton}>
+              {ts("teach")}
+            </Link>
+          ) : null}
         </header>
 
         {objectives.length > 0 ? (

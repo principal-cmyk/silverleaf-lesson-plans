@@ -164,6 +164,7 @@
         "delete": "Delete",
         "download": "Download government forms (ZIP)",
         "downloadPlans": "Download lesson plans (ZIP)",
+        "downloadSlides": "Download slides (ZIP)",
         "clear": "Clear selection",
         "working": "Working…",
         "publishedCount": "{count, plural, one {# plan} other {# plans}} published.",
@@ -191,6 +192,28 @@
         "none": "No plans were selected. Go back to Plans, tick the plans you want, then choose Download lesson plans.",
         "skipped": "{count, plural, one {# plan was} other {# plans were}} left out because they have no lesson plan document (they were not made in AI Studio):",
         "download": "Download {count, plural, one {# lesson plan} other {# lesson plans}} (ZIP)"
+      },
+      "slides": {
+        "back": "← Back to plans",
+        "heading": "Slides (PowerPoint)",
+        "summary": "{count, plural, one {# presentation} other {# presentations}}: {ready} ready, {toGenerate} to be made by AI first.",
+        "costNote": "Making a presentation takes about a minute and one AI call. Three are made at a time; each is saved, so it is never made twice.",
+        "noAi": "AI is not set up on this server, so plans without slides get basic slides made straight from the plan.",
+        "keepOpen": "Keep this tab open until the download starts.",
+        "none": "No plans were selected. Go back to Plans, tick the plans you want, then choose Download slides.",
+        "skipped": "{count, plural, one {# plan was} other {# plans were}} left out because they were not made in AI Studio, so they have no slides:",
+        "download": "Make and download {count, plural, one {# presentation} other {# presentations}} (ZIP)",
+        "again": "Download again",
+        "progress": "{done} of {total} done",
+        "noneMade": "No presentation could be made. Try again later.",
+        "status": {
+          "waiting": "Waiting",
+          "generating": "Making slides with AI…",
+          "building": "Building PowerPoint…",
+          "ready": "Ready",
+          "basic": "Ready — basic slides (AI was not available)",
+          "failed": "Failed"
+        }
       }
     }
   }
