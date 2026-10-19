@@ -68,9 +68,14 @@ const LINE_TOLERANCE = 2.5;
  * matches on purpose: "Main Activity" must match "main activit" (a `\b`
  * there would fail before the "y"), and "Misconception" / "Misconceptions"
  * both anchor the same column.
+ *
+ * The second group is the Kiswahili template's labels (Kipindi, Umahiri
+ * Mahususi, Shughuli ya/za Ujifunzaji, Lengo la Somo, Maarifa na Stadi,
+ * Tathmini / Ushahidi, Dhana Potofu, Utofautishaji / Msaada, Zana, Tafakari).
+ * "Kipind" has no "i": the narrow first column wraps it as "Kipind" / "i".
  */
 const HEADER_START =
-  /^(lesson|specific|main activit|knowledge|assessment|learning activit|sample|misconception|differentiation|resources?|reflection|remarks?|week)/i;
+  /^(lesson|specific|main activit|knowledge|assessment|learning activit|sample|misconception|differentiation|resources?|reflection|remarks?|week|kipind|umahiri|shughuli|lengo|maarifa|tathmini|dhana|utofautishaji|zana|tafakari|wiki)/i;
 
 /** A lesson code opening a row: "1", "BL1", "MT2", "ET1", "L009", "ER1". */
 const LESSON_CODE = /^(?:[A-Z]{1,3}\s?\d{1,3}|\d{1,3})$/;
@@ -101,7 +106,8 @@ function lineText(line: Line): string {
 
 /**
  * A week-section title: names a week, mentions the scheme/grade, and is set
- * as ONE wide fragment. The width test is on a single fragment, not the
+ * as ONE wide fragment — in English ("… GRADE 4 … TERM 1A | WEEK 1: …") or
+ * Kiswahili ("… DARASA LA 5 MUHULA WA 1A | WIKI 1: …"). The width test is on a single fragment, not the
  * line's total: a lesson row's baseline can hold eleven narrow cell
  * fragments that together span the page and happen to mention "Week 3".
  */
@@ -110,7 +116,8 @@ function isTitleLine(line: Line, pageWidth: number): boolean {
   if (widest < pageWidth * 0.3) return false;
   const text = lineText(line);
   return (
-    /\bweek\s*[:\-–—]?\s*\d+/i.test(text) && /\b(grade|term|academy|scheme)\b/i.test(text)
+    /\b(week|wiki)\s*[:\-–—]?\s*\d+/i.test(text) &&
+    /\b(grade|term|academy|scheme|darasa|muhula)\b/i.test(text)
   );
 }
 
@@ -320,9 +327,10 @@ export function reconstructSowTables(pages: PdfPageText[]): ReconstructedSow {
       const colZero = line.frags
         .filter((f) => columnOf(edges!, f.x) === 0)
         .map((f) => f.str.trim());
-      // A lesson code opens a row — unless it is the number of a "Week" label
-      // that wrapped onto its own line ("57 (L001)" / "Week" / "10").
-      const pendingWeek = /^week$/i.test(current?.cells[0]?.at(-1) ?? "");
+      // A lesson code opens a row — unless it is the number of a "Week" (or
+      // Kiswahili "Wiki") label that wrapped onto its own line ("57 (L001)" /
+      // "Week" / "10").
+      const pendingWeek = /^(week|wiki)$/i.test(current?.cells[0]?.at(-1) ?? "");
       const opensRow = !pendingWeek && colZero.some((c) => LESSON_CODE.test(c));
 
       if (inHeaderBand) {

@@ -136,6 +136,28 @@ describe("repairSplitWords", () => {
   });
 });
 
+/** The Kiswahili header band; "Kipindi" wraps as "Kipind" / "i" in the narrow first column. */
+function kiswahiliHeaderBand(y: number): PdfTextItem[] {
+  return [
+    frag("Kipind", 33, y),
+    frag("i", 33, y - 12.5),
+    frag("Umahiri", 72, y),
+    frag("Mahususi", 65, y - 12.5),
+    frag("Shughuli ya", 116, y),
+    frag("Ujifunzaji", 120, y - 12.5),
+    frag("Lengo la Somo", 174, y),
+    frag("Maarifa na Stadi", 244, y),
+    frag("Tathmini / Ushahidi", 335, y),
+    frag("Shughuli za Ujifunzaji (Mimi →", 436, y),
+    frag("Sote → Wewe)", 479, y - 12.5),
+    frag("Dhana Potofu", 572, y),
+    frag("Utofautishaji /", 640, y),
+    frag("Msaada", 655, y - 12.5),
+    frag("Zana", 714, y),
+    frag("Tafakari", 759, y),
+  ];
+}
+
 describe("reconstructSowTables", () => {
   it("rebuilds title, header and lesson rows from one page", () => {
     const page: PdfPageText = {
@@ -200,6 +222,29 @@ describe("reconstructSowTables", () => {
     };
     const rows = reconstructSowTables([page]).tables[0]!.slice(2);
     expect(rows.map((r) => r[0])).toEqual(["57 (57) Week 10", "58 (58) Week 10"]);
+  });
+
+  it("rebuilds a Kiswahili week: 'Wiki' title, Kiswahili header band and lesson rows", () => {
+    const kiswahiliTitle =
+      "SILVERLEAF ACADEMY — KISWAHILI DARASA LA 5 MUHULA WA 1A | WIKI 2: MSAMIATI NA MPANGILIO (Vipindi 1–5)";
+    const page: PdfPageText = {
+      ...PAGE,
+      items: [
+        frag(kiswahiliTitle, 143, 1125, 544),
+        ...kiswahiliHeaderBand(1104),
+        ...lessonRow("1", ["Wiki 2"], 1035, "Msamiati na Mpangilio"),
+        ...lessonRow("2", ["Wiki", "2"], 900, "Kusimulia Hadithi"),
+      ],
+    };
+    const { tables, titleHints } = reconstructSowTables([page]);
+    expect(titleHints).toEqual([kiswahiliTitle]);
+    const [, header, ...rows] = tables[0]!;
+    expect(header?.[0]).toBe("Kipindi");
+    expect(header?.[2]).toBe("Shughuli ya Ujifunzaji");
+    expect(header?.[6]).toBe("Shughuli za Ujifunzaji (Mimi → Sote → Wewe)");
+    // A "Wiki" label wrapped onto its own line opens no phantom row.
+    expect(rows.map((r) => r[0])).toEqual(["1 (1) Wiki 2", "2 (2) Wiki 2"]);
+    expect(rows[1]![2]).toBe("Kusimulia Hadithi");
   });
 
   it("does not mistake a wide lesson baseline for a week title", () => {

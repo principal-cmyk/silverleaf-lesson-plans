@@ -115,23 +115,27 @@ type MappableField = Exclude<
  * e.g., "learning activities" / "sample lesson activities" is not stolen by the
  * generic main-activity rule, and "Lesson Objective" is not stolen by the bare
  * "lesson" rule.
+ *
+ * Each rule also knows the Kiswahili template's label. There the two activity
+ * columns differ by one word: "Shughuli ZA Ujifunzaji (Mimi → Sote → Wewe)" is
+ * the learning activities, "Shughuli YA Ujifunzaji" the main activity.
  */
 const FIELD_RULES: ReadonlyArray<{
   field: MappableField | "lessonNumber" | "week";
   re: RegExp;
 }> = [
-  { field: "specificCompetence", re: /specific competence/i },
-  { field: "lessonObjective", re: /objective/i },
-  { field: "knowledgeAndSkills", re: /knowledge|skills?/i },
-  { field: "assessmentEvidence", re: /assessment|evidence/i },
-  { field: "learningActivities", re: /learning activit|sample.*activit/i },
-  { field: "mainActivity", re: /main activit/i },
-  { field: "misconceptions", re: /misconception/i },
-  { field: "differentiationSupport", re: /differen/i },
-  { field: "resources", re: /resource/i },
-  { field: "reflection", re: /reflection|remark/i },
-  { field: "lessonNumber", re: /lesson/i },
-  { field: "week", re: /week|^wk\b/i },
+  { field: "specificCompetence", re: /specific competence|umahiri mahususi/i },
+  { field: "lessonObjective", re: /objective|lengo la somo/i },
+  { field: "knowledgeAndSkills", re: /knowledge|skills?|maarifa/i },
+  { field: "assessmentEvidence", re: /assessment|evidence|tathmini|ushahidi/i },
+  { field: "learningActivities", re: /learning activit|sample.*activit|shughuli za/i },
+  { field: "mainActivity", re: /main activit|shughuli ya/i },
+  { field: "misconceptions", re: /misconception|dhana potofu/i },
+  { field: "differentiationSupport", re: /differen|utofautishaji/i },
+  { field: "resources", re: /resource|\bzana\b/i },
+  { field: "reflection", re: /reflection|remark|tafakari/i },
+  { field: "lessonNumber", re: /lesson|^kipindi$/i },
+  { field: "week", re: /week|^wk\b|^wiki\b/i },
 ];
 
 /** Collapse whitespace, decode the few entities mammoth/CSV emit, trim. */
@@ -171,8 +175,10 @@ function fieldForHeader(
  * not a lesson header, so "assessment" alone must never be enough.
  */
 export function looksLikeHeaderRow(cells: string[]): boolean {
-  const CORE = /specific competence|lesson objective|main activit|learning activit|sample.*activit/i;
-  const OTHER = /knowledge|assessment|misconception|differen|resource|reflection|remark|^lesson$|^week$/i;
+  const CORE =
+    /specific competence|lesson objective|main activit|learning activit|sample.*activit|umahiri mahususi|lengo la somo|shughuli (ya|za) ujifunzaji/i;
+  const OTHER =
+    /knowledge|assessment|misconception|differen|resource|reflection|remark|^lesson$|^week$|maarifa|tathmini|dhana potofu|utofautishaji|^zana$|tafakari|^kipindi$|^wiki$/i;
   const short = cells.map((c) => c.trim()).filter((c) => c && c.length <= 120);
   const core = short.filter((c) => CORE.test(c)).length;
   const other = short.filter((c) => !CORE.test(c) && OTHER.test(c)).length;
@@ -189,12 +195,12 @@ function parseWeek(value: string): number | undefined {
 
 /**
  * Pull the week number out of a section title that names it, e.g.
- * "Week 3: Roman numerals", "WEEK 1 — Baseline". Unlike {@link parseWeek} it
- * needs the word "week", so a title like "SILVERLEAF ACADEMY — GRADE 4 …"
- * cannot yield 4 as the week.
+ * "Week 3: Roman numerals", "WEEK 1 — Baseline", Kiswahili "WIKI 2: …". Unlike
+ * {@link parseWeek} it needs the word "week"/"wiki", so a title like
+ * "SILVERLEAF ACADEMY — GRADE 4 …" cannot yield 4 as the week.
  */
 function parseWeekFromTitle(value: string): number | undefined {
-  const m = value.match(/\bweek\s*[:\-–—]?\s*(\d+)/i);
+  const m = value.match(/\b(?:week|wiki)\s*[:\-–—]?\s*(\d+)/i);
   return m ? Number(m[1]) : undefined;
 }
 
@@ -227,12 +233,33 @@ export function parseTitleLine(text: string): TitleLineMeta {
   const gradeSubjectScheme = clean.match(
     /\bgrade\s*(\d+)\s*[:\-–—]?\s*(.+?)\s*\bschemes?\s+of\s+work\b/i,
   );
+  // Kiswahili: the class is "darasa la 5", the term "muhula wa 1A", and the
+  // subject sits either before the class ("— KISWAHILI DARASA LA 5 MUHULA WA
+  // 1A | WIKI 1: …") or between class and term ("— DARASA LA 5 HTM MUHULA WA
+  // 2A | …"). Short all-caps acronyms (HTM) keep their capitals.
+  const darasa = clean.match(
+    /(?:^|[—–|:-])\s*([^—–|:]*?)\s*\bdarasa\s+la\s+(\d+)\s*([^—–|:]*?)\s*\bmuhula\b/i,
+  );
+  if (!gradeSubjectTerm && !gradeSubjectScheme && darasa) {
+    meta.grade = `Grade ${darasa[2]}`;
+    const before = (darasa[1] ?? "").replace(/^silverleaf academy\s*/i, "").trim();
+    const subject = before || (darasa[3] ?? "").trim();
+    if (subject) {
+      meta.subject = subject
+        .split(/\s+/)
+        .map((w) => (/^[A-Z]{2,3}$/.test(w) ? w : titleCaseWords(w)))
+        .join(" ");
+    }
+  }
+  const muhula = clean.match(/\bmuhula\s+wa\s+([12]\s*[ab])\b/i);
+  if (muhula) meta.term = (muhula[1] ?? "").replace(/\s+/g, "").toUpperCase();
+
   const hit = gradeSubjectTerm ?? gradeSubjectScheme;
   if (hit) {
     meta.grade = `Grade ${hit[1]}`;
     const subject = (hit[2] ?? "").replace(/[|:\-–—]+$/g, "").trim();
     if (subject) meta.subject = titleCaseWords(subject);
-  } else {
+  } else if (!meta.grade) {
     const grade = clean.match(/\bgrade\s*(\d+)\b/i);
     if (grade) meta.grade = `Grade ${grade[1]}`;
   }
@@ -255,15 +282,16 @@ function titleCaseWords(s: string): string {
 }
 
 /**
- * Split a STANDARD lesson cell such as `1 (L001) Week 1`, `BL1 (BL1) Week 1`
- * or `MT2 (MT2) Week 7` into the lesson label and the week it names. The
+ * Split a STANDARD lesson cell such as `1 (L001) Week 1`, `BL1 (BL1) Week 1`,
+ * `MT2 (MT2) Week 7` or Kiswahili `1 (L001) Wiki 2` into the lesson label and
+ * the week it names. The
  * label keeps the code in parentheses (teachers refer to "L009"); only the
  * trailing "Week N" is stripped, because the week has its own column.
  */
 export function splitLessonCell(value: string): { lessonNumber: string; week?: number } {
   const clean = cleanCell(value);
   const week = parseWeekFromTitle(clean);
-  const lessonNumber = clean.replace(/\bweek\s*[:\-–—]?\s*\d+\b/i, "").trim();
+  const lessonNumber = clean.replace(/\b(?:week|wiki)\s*[:\-–—]?\s*\d+\b/i, "").trim();
   return { lessonNumber: lessonNumber || clean, week };
 }
 
@@ -395,7 +423,7 @@ function findHeaderRow(table: string[][]): number {
 
 function classifyTable(table: string[][]): TableKind {
   const row0first = table[0]?.[0] ?? "";
-  if (/^\s*week\b/i.test(row0first)) return "week";
+  if (/^\s*(week|wiki)\b/i.test(row0first)) return "week";
   // Structure beats wording: any table headed by the SOW columns is a week
   // table, whatever its title line says. This must run before the metadata
   // rule — a STANDARD title ("… GRADE 4 MATHEMATICS TERM 1A | WEEK 1 …")

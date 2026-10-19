@@ -335,6 +335,42 @@ function standardWeek(week: number, lessons: Array<[label: string, activity: str
   ];
 }
 
+/** The Kiswahili STANDARD template's header row, as in "Grade 5 - Kiswahili T1A.pdf". */
+const KISWAHILI_HEADERS = [
+  "Kipindi",
+  "Umahiri Mahususi",
+  "Shughuli ya Ujifunzaji",
+  "Lengo la Somo (Mwisho wa somo, mwanafunzi awe na uwezo wa:)",
+  "Maarifa na Stadi Zinazohitajika",
+  "Tathmini / Ushahidi (Utajuaje kuwa wameelewa?)",
+  "Shughuli za Ujifunzaji (Mimi → Sote → Wewe)",
+  "Dhana Potofu",
+  "Utofautishaji / Msaada",
+  "Zana",
+  "Tafakari",
+];
+
+/** A Kiswahili STANDARD week table: title row, header row, lesson rows. */
+function kiswahiliWeek(week: number, lessons: Array<[label: string, activity: string]>): string[][] {
+  return [
+    [`SILVERLEAF ACADEMY — KISWAHILI DARASA LA 5 MUHULA WA 1A | WIKI ${week}: MSAMIATI NA MPANGILIO`],
+    KISWAHILI_HEADERS,
+    ...lessons.map(([label, activity]) => [
+      `${label} Wiki ${week}`,
+      "1.1 Kuendeleza mazungumzo katika miktadha mbalimbali",
+      activity,
+      "DOK 1: Onyesha jinsi ya kuorodhesha maneno ya mpangilio",
+      "Anajua: • SWK kwamba… Stadi: • Tambua…",
+      "Swali Kuu la Tathmini: … Tikiti ya Kutoka: Sw1 …",
+      "Swali Elekezi: … Mimi (dk 8) … Sote (dk 8) … Wewe …",
+      "• “Kuna jibu moja tu” — mara nyingi kuna njia kadhaa sahihi.",
+      "Utofautishaji wa maudhui (ngazi 3): …",
+      "Kitabu cha Mwanafunzi; ubao; madaftari",
+      "Ni wanafunzi gani waliweza …",
+    ]),
+  ];
+}
+
 describe("parseTitleLine", () => {
   it("reads grade, subject, term and week from a STANDARD week title", () => {
     expect(
@@ -358,6 +394,24 @@ describe("parseTitleLine", () => {
   it("never takes the grade digit as the week", () => {
     expect(parseTitleLine("SILVERLEAF ACADEMY — GRADE 4 MATHEMATICS").week).toBeUndefined();
   });
+
+  it("reads a Kiswahili title with the subject before the class", () => {
+    expect(
+      parseTitleLine(
+        "SILVERLEAF ACADEMY — KISWAHILI DARASA LA 5 MUHULA WA 1A | WIKI 2: MSAMIATI NA MPANGILIO (Vipindi 1–5)",
+      ),
+    ).toEqual({ grade: "Grade 5", subject: "Kiswahili", term: "1A", week: 2 });
+  });
+
+  it("reads a Kiswahili title with the subject between class and term, keeping an acronym", () => {
+    expect(
+      parseTitleLine("SILVERLEAF ACADEMY — DARASA LA 5 HTM MUHULA WA 2A | WIKI 1: MAFUNZO ELEKEZI"),
+    ).toEqual({ grade: "Grade 5", subject: "HTM", term: "2A", week: 1 });
+  });
+
+  it("never takes the class digit as the week in a Kiswahili title", () => {
+    expect(parseTitleLine("SILVERLEAF ACADEMY — KISWAHILI DARASA LA 5 MUHULA WA 1A").week).toBeUndefined();
+  });
 });
 
 describe("splitLessonCell", () => {
@@ -365,6 +419,11 @@ describe("splitLessonCell", () => {
     expect(splitLessonCell("1 (L001) Week 1")).toEqual({ lessonNumber: "1 (L001)", week: 1 });
     expect(splitLessonCell("BL1 (BL1) Week 1")).toEqual({ lessonNumber: "BL1 (BL1)", week: 1 });
     expect(splitLessonCell("57 (L057) Week 10")).toEqual({ lessonNumber: "57 (L057)", week: 10 });
+  });
+
+  it("strips a Kiswahili 'Wiki' week too", () => {
+    expect(splitLessonCell("1 (L001) Wiki 2")).toEqual({ lessonNumber: "1 (L001)", week: 2 });
+    expect(splitLessonCell("MT1 (MT1) Wiki 7")).toEqual({ lessonNumber: "MT1 (MT1)", week: 7 });
   });
 
   it("leaves a plain label alone", () => {
@@ -423,6 +482,32 @@ describe("parseSowTables — STANDARD template", () => {
       titleHints: ["Grade 4 Science Schemes of Work 2026"],
     });
     expect(scheme).toMatchObject({ grade: "Grade 4", subject: "Science", term: "1A", year: "2026" });
+  });
+});
+
+describe("parseSowTables — Kiswahili STANDARD template", () => {
+  it("reads lessons, weeks and scheme metadata from Kiswahili week tables", () => {
+    const parsed = parseSowTables([
+      kiswahiliWeek(1, [["BL1 (BL1)", "Marudio kabla ya tathmini"]]),
+      kiswahiliWeek(2, [["1 (L001)", "Msamiati na Mpangilio"], ["2 (L002)", "Kusimulia Hadithi"]]),
+    ]);
+    expect(parsed.rows.map((r) => r.lessonNumber)).toEqual(["BL1 (BL1)", "1 (L001)", "2 (L002)"]);
+    expect(parsed.rows.map((r) => r.week)).toEqual([1, 2, 2]);
+    expect(parsed.scheme).toMatchObject({ grade: "Grade 5", subject: "Kiswahili", term: "1A", weeksCount: 2 });
+  });
+
+  it("maps every one of the 11 columns, telling 'Shughuli ya' from 'Shughuli za'", () => {
+    const [row] = parseSowTables([kiswahiliWeek(2, [["1 (L001)", "Msamiati na Mpangilio"]])]).rows;
+    expect(row?.specificCompetence).toMatch(/^1\.1 Kuendeleza/);
+    expect(row?.mainActivity).toBe("Msamiati na Mpangilio");
+    expect(row?.lessonObjective).toMatch(/^DOK 1/);
+    expect(row?.knowledgeAndSkills).toMatch(/^Anajua:/);
+    expect(row?.assessmentEvidence).toMatch(/^Swali Kuu la Tathmini/);
+    expect(row?.learningActivities).toMatch(/^Swali Elekezi/);
+    expect(row?.misconceptions).toMatch(/jibu moja/);
+    expect(row?.differentiationSupport).toMatch(/^Utofautishaji wa maudhui/);
+    expect(row?.resources).toMatch(/^Kitabu cha Mwanafunzi/);
+    expect(row?.reflection).toMatch(/^Ni wanafunzi/);
   });
 });
 
