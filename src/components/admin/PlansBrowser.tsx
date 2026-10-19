@@ -22,8 +22,9 @@
  * Selection + bulk actions: the selection is a set of plan ids owned here, so
  * it survives "Show more". "Select all" asks the server for every id matching
  * the filters (not just the loaded rows); Publish / Unpublish / Delete then run
- * as bulk server actions, and "Download government forms" opens the combined
- * form page for the selection in a new tab, where the PDF is built.
+ * as bulk server actions, and "Download government forms" / "Download lesson
+ * plans" open the combined form / branded-document page for the selection in a
+ * new tab, where the PDF is built.
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -35,7 +36,11 @@ import {
   listPlanIds,
   loadMorePlans,
 } from "@/lib/actions/adminPlans";
-import { GOVERNMENT_FORMS_PATH, MAX_FORMS_PER_PDF } from "@/lib/admin/governmentForms";
+import {
+  GOVERNMENT_FORMS_PATH,
+  LESSON_PLANS_PDF_PATH,
+  MAX_FORMS_PER_PDF,
+} from "@/lib/admin/governmentForms";
 import type { PlanFilters, PlanRow } from "@/lib/admin/plansQuery";
 import PlansTable from "./PlansTable";
 import styles from "./PlansBrowser.module.css";
@@ -174,7 +179,7 @@ export default function PlansBrowser({
     });
   }
 
-  function onDownloadForms() {
+  function onDownloadPdf(pathname: string) {
     setNotice(null);
     setBulkError(null);
     if (selected.size > MAX_FORMS_PER_PDF) {
@@ -187,7 +192,7 @@ export default function PlansBrowser({
     const rest = [...selected].filter((id) => !loadedOrder.includes(id));
     const href = getPathname({
       href: {
-        pathname: GOVERNMENT_FORMS_PATH,
+        pathname,
         query: { ids: [...loadedOrder, ...rest].join(",") },
       },
       locale,
@@ -264,10 +269,18 @@ export default function PlansBrowser({
                 <button
                   type="button"
                   className={`${styles.bulkBtn} ${styles.bulkBtnPrimary}`}
-                  onClick={onDownloadForms}
+                  onClick={() => onDownloadPdf(GOVERNMENT_FORMS_PATH)}
                   disabled={bulkPending}
                 >
                   {tb("download")}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.bulkBtn} ${styles.bulkBtnPrimary}`}
+                  onClick={() => onDownloadPdf(LESSON_PLANS_PDF_PATH)}
+                  disabled={bulkPending}
+                >
+                  {tb("downloadPlans")}
                 </button>
                 <button
                   type="button"

@@ -29,7 +29,8 @@ import styles from "./plan.module.css";
  * A structured plan is shown as two projections of the same content_json, and
  * the teacher switches between them: the Silverleaf-branded document (read-only)
  * and the official government form, which is the ONLY one they can download —
- * the form is what the school files with inspectors. Both are rendered here on
+ * the form is what the school files with inspectors. Admins also get the
+ * branded PDF export. Both are rendered here on
  * the server and passed to the switch as slots, so neither document's markup
  * reaches the client bundle.
  *
@@ -119,7 +120,9 @@ export default async function PlanDetailPage({
               groupLabel={t("versionLabel")}
               brandedLabel={t("versionBranded")}
               governmentLabel={t("versionGovernment")}
-              branded={<LessonPlanDocument plan={structured.data} />}
+              branded={
+                <LessonPlanDocument plan={structured.data} showPrint={user.isAdmin} />
+              }
               government={
                 <ComplianceDocument
                   form={toComplianceForm(structured.data, plan.durationMinutes)}

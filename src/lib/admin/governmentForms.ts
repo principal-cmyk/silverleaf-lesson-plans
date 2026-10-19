@@ -14,6 +14,13 @@ export const MAX_FORMS_PER_PDF = 100;
 /** Admin route (locale-less) that renders the selected plans' forms. */
 export const GOVERNMENT_FORMS_PATH = "/admin/plans/government-forms";
 
+/**
+ * Admin route (locale-less) that renders the selected plans' branded
+ * Silverleaf documents as one combined PDF. Same `?ids=` contract and cap as
+ * the forms page, so it reuses `parseGovernmentFormIds`.
+ */
+export const LESSON_PLANS_PDF_PATH = "/admin/plans/lesson-plans";
+
 /** Build the forms-page href for a selection (ids travel in the query). */
 export function governmentFormsHref(planIds: readonly string[]): string {
   return `${GOVERNMENT_FORMS_PATH}?ids=${planIds.join(",")}`;

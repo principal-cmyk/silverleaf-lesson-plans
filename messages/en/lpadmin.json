@@ -163,6 +163,7 @@
         "unpublish": "Unpublish",
         "delete": "Delete",
         "download": "Download government forms (PDF)",
+        "downloadPlans": "Download lesson plans (PDF)",
         "clear": "Clear selection",
         "working": "Working…",
         "publishedCount": "{count, plural, one {# plan} other {# plans}} published.",
@@ -181,6 +182,15 @@
         "none": "No plans were selected. Go back to Plans, tick the plans you want, then choose Download government forms.",
         "skipped": "{count, plural, one {# plan was} other {# plans were}} left out because they have no government form (they were not made in AI Studio):",
         "download": "Download {count, plural, one {# form} other {# forms}} as one PDF"
+      },
+      "lessonPlans": {
+        "back": "← Back to plans",
+        "heading": "Lesson plans",
+        "summary": "{count, plural, one {# lesson plan is} other {# lesson plans are}} ready to download as one PDF.",
+        "keepOpen": "Keep this tab open while the PDF is prepared — a large selection can take a few minutes.",
+        "none": "No plans were selected. Go back to Plans, tick the plans you want, then choose Download lesson plans.",
+        "skipped": "{count, plural, one {# plan was} other {# plans were}} left out because they have no lesson plan document (they were not made in AI Studio):",
+        "download": "Download {count, plural, one {# lesson plan} other {# lesson plans}} as one PDF"
       }
     }
   }
