@@ -162,8 +162,8 @@
         "publish": "Chapisha",
         "unpublish": "Ondoa kuchapisha",
         "delete": "Futa",
-        "download": "Pakua fomu za serikali (PDF)",
-        "downloadPlans": "Pakua mipango ya somo (PDF)",
+        "download": "Pakua fomu za serikali (ZIP)",
+        "downloadPlans": "Pakua mipango ya somo (ZIP)",
         "clear": "Ondoa uchaguzi",
         "working": "Inafanya kazi…",
         "publishedCount": "{count, plural, one {Mpango #} other {Mipango #}} imechapishwa.",
@@ -171,26 +171,26 @@
         "deletedCount": "{count, plural, one {Mpango #} other {Mipango #}} imefutwa.",
         "blockedCount": "{count, plural, one {Mpango # haukufutwa} other {Mipango # haikufutwa}} kwa sababu walimu wameitumia au kuipa maoni — ondoa kuchapisha badala yake.",
         "confirmDelete": "Futa {count, plural, one {mpango #} other {mipango #}}? Hili haliwezi kutenduliwa.",
-        "tooManyForms": "PDF moja inaweza kuwa na mipango {max} tu. Chagua mipango michache kisha jaribu tena.",
+        "tooManyForms": "Upakuaji mmoja unaweza kuwa na mipango {max} tu. Chagua mipango michache kisha jaribu tena.",
         "error": "Hitilafu imetokea. Jaribu tena."
       },
       "forms": {
         "back": "← Rudi kwenye mipango",
         "heading": "Fomu za serikali",
-        "summary": "{count, plural, one {Fomu # iko tayari} other {Fomu # ziko tayari}} kupakuliwa kama PDF moja.",
-        "keepOpen": "Acha ukurasa huu wazi wakati PDF inaandaliwa — mipango mingi inaweza kuchukua dakika chache.",
+        "summary": "{count, plural, one {Fomu # iko tayari} other {Fomu # ziko tayari}} kupakuliwa kama faili la ZIP, PDF moja kwa kila mpango.",
+        "keepOpen": "Acha ukurasa huu wazi wakati faili zinaandaliwa — mipango mingi inaweza kuchukua dakika chache.",
         "none": "Hakuna mpango uliochaguliwa. Rudi kwenye Mipango, chagua mipango unayotaka, kisha bofya Pakua fomu za serikali.",
         "skipped": "{count, plural, one {Mpango # haukuwekwa} other {Mipango # haikuwekwa}} kwa sababu haina fomu ya serikali (haikutengenezwa na AI Studio):",
-        "download": "Pakua {count, plural, one {fomu #} other {fomu #}} kama PDF moja"
+        "download": "Pakua {count, plural, one {fomu #} other {fomu #}} (ZIP)"
       },
       "lessonPlans": {
         "back": "← Rudi kwenye mipango",
         "heading": "Mipango ya somo",
-        "summary": "{count, plural, one {Mpango # wa somo uko tayari} other {Mipango # ya somo iko tayari}} kupakuliwa kama PDF moja.",
-        "keepOpen": "Acha ukurasa huu wazi wakati PDF inaandaliwa — mipango mingi inaweza kuchukua dakika chache.",
+        "summary": "{count, plural, one {Mpango # wa somo uko tayari} other {Mipango # ya somo iko tayari}} kupakuliwa kama faili la ZIP, PDF moja kwa kila mpango.",
+        "keepOpen": "Acha ukurasa huu wazi wakati faili zinaandaliwa — mipango mingi inaweza kuchukua dakika chache.",
         "none": "Hakuna mpango uliochaguliwa. Rudi kwenye Mipango, chagua mipango unayotaka, kisha bofya Pakua mipango ya somo.",
         "skipped": "{count, plural, one {Mpango # haukuwekwa} other {Mipango # haikuwekwa}} kwa sababu haina hati ya mpango wa somo (haikutengenezwa na AI Studio):",
-        "download": "Pakua {count, plural, one {mpango # wa somo} other {mipango # ya somo}} kama PDF moja"
+        "download": "Pakua {count, plural, one {mpango # wa somo} other {mipango # ya somo}} (ZIP)"
       }
     }
   }

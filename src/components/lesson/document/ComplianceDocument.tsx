@@ -50,9 +50,21 @@ function Rule({ short = false }: { short?: boolean }) {
 }
 
 /** One sheet of the form. */
-function Page({ children }: { children: React.ReactNode }) {
+/**
+ * One landscape sheet. Each fills the full sheet height, so the printed form
+ * has no blank band at the foot: the cover spreads its lines evenly down the
+ * sheet, and a process sheet stretches its table (more room to write).
+ */
+function Page({
+  children,
+  fill,
+}: {
+  children: React.ReactNode;
+  fill: "spread" | "table";
+}) {
+  const fillClass = fill === "spread" ? styles.fillSpread : styles.fillTable;
   return (
-    <section className={styles.page} data-print-page>
+    <section className={`${styles.page} ${fillClass}`} data-print-page>
       {children}
     </section>
   );
@@ -129,14 +141,15 @@ export default function ComplianceDocument({
   downloadLabel?: string;
   /**
    * Render the per-form download button. The batch forms page turns it off:
-   * there one button captures every form on the page into a single PDF.
+   * there one button captures every form on the page, each into its own PDF
+   * (named `fileName`) inside one ZIP.
    */
   showDownload?: boolean;
 }) {
   const [intro, competence, design, assessment] = form.steps;
 
   return (
-    <div className={styles.doc} data-print-root>
+    <div className={styles.doc} data-print-root data-print-file={fileName}>
       {showDownload ? (
         <div className={styles.printBar}>
           <PrintButton
@@ -150,7 +163,7 @@ export default function ComplianceDocument({
       ) : null}
 
       {/* Sheet 1 — the identifying header. */}
-      <Page>
+      <Page fill="spread">
         {/* eslint-disable-next-line @next/next/no-img-element -- the form's own logo, lifted from the school's template; intrinsic-sized via CSS height */}
         <img
           className={styles.logo}
@@ -191,28 +204,31 @@ export default function ComplianceDocument({
           </span>
         </div>
 
-        <p className={styles.pupilsHeading}>IDADI YA WANAFUNZI / NUMBER OF PUPILS</p>
-        <table className={`${styles.table} ${styles.pupils}`}>
-          <thead>
-            <tr>
-              <th className={styles.pupilsCat} aria-label="Category" />
-              <th className={styles.pupilsCount}>WAVULANA / BOYS</th>
-              <th className={styles.pupilsCount}>WASICHANA / GIRLS</th>
-              <th className={styles.pupilsCount}>JUMLA / TOTAL</th>
-            </tr>
-          </thead>
-          <tbody>
-            {PUPIL_ROWS.map((rowLabel) => (
-              <tr key={rowLabel}>
-                <td>{rowLabel}</td>
-                {/* Counted by hand on the day. */}
-                <td />
-                <td />
-                <td />
+        {/* One block, so spreading the sheet never parts heading from table. */}
+        <div>
+          <p className={styles.pupilsHeading}>IDADI YA WANAFUNZI / NUMBER OF PUPILS</p>
+          <table className={`${styles.table} ${styles.pupils}`}>
+            <thead>
+              <tr>
+                <th className={styles.pupilsCat} aria-label="Category" />
+                <th className={styles.pupilsCount}>WAVULANA / BOYS</th>
+                <th className={styles.pupilsCount}>WASICHANA / GIRLS</th>
+                <th className={styles.pupilsCount}>JUMLA / TOTAL</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {PUPIL_ROWS.map((rowLabel) => (
+                <tr key={rowLabel}>
+                  <td>{rowLabel}</td>
+                  {/* Counted by hand on the day. */}
+                  <td />
+                  <td />
+                  <td />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <Field
           label="Umahiri Mahususi / Specific Competence:"
@@ -231,7 +247,7 @@ export default function ComplianceDocument({
       </Page>
 
       {/* Sheet 2 — the first half of the process table. */}
-      <Page>
+      <Page fill="table">
         <p className={styles.processHeading}>
           MCHAKATO WA UFUNDISHAJI NA UJIFUNZAJI / LESSON PROCESS &amp; DEVELOPMENT
         </p>
@@ -245,7 +261,7 @@ export default function ComplianceDocument({
       </Page>
 
       {/* Sheet 3 — the rest of the table, then the hand-written remarks. */}
-      <Page>
+      <Page fill="table">
         <p className={styles.processHeading}>
           MCHAKATO WA UFUNDISHAJI NA UJIFUNZAJI / LESSON PROCESS &amp; DEVELOPMENT
         </p>

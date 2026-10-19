@@ -57,6 +57,19 @@
   page-break-after: always;
   font-size: 11px;
   line-height: 1.4;
+  /* Fill the whole sheet (see .fillSpread / .fillTable) so the printed form
+     has no blank band at its foot. */
+  display: flex;
+  flex-direction: column;
+}
+/* Cover: the spare height is shared out evenly between its lines. */
+.fillSpread {
+  justify-content: space-between;
+}
+/* Process sheets: the table takes the spare height, so its step rows grow —
+   more room to write — and the remarks line sits at the foot of the sheet. */
+.fillTable > .table {
+  flex: 1 0 auto;
 }
 .page:last-child {
   break-after: auto;
@@ -276,6 +289,7 @@
    320mm (~1209px) stage, so the PDF always gets the real landscape layout. */
 @container (max-width: 900px) {
   .page {
+    display: block;
     width: 100%;
     min-height: 0;
     margin: 0 0 7mm;

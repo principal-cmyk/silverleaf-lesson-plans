@@ -24,7 +24,8 @@ export const dynamic = "force-dynamic";
  * ids in `?ids=`. Every plan whose `content_json` parses is projected onto the
  * official form (the same `toComplianceForm` the teacher page uses) and all of
  * them sit inside ONE `[data-print-root]`, so the single PrintButton at the top
- * captures every form page into one combined landscape PDF. Plans without
+ * captures every form, each into its own landscape PDF, and downloads them
+ * together as one ZIP. Plans without
  * structured content have no form to project and are listed as skipped.
  *
  * Drafts are included on purpose: this is the admin's tool for checking and
@@ -78,10 +79,10 @@ export default async function GovernmentFormsPage({
 
   const first = forms[0];
   const last = forms[forms.length - 1];
-  const fileName =
+  const zipName =
     forms.length === 1
-      ? `${first!.filename}_Government_Form.pdf`
-      : `Government_Forms_${first?.filename}_to_${last?.filename}.pdf`;
+      ? `${first!.filename}_Government_Form.zip`
+      : `Government_Forms_${first?.filename}_to_${last?.filename}.zip`;
 
   return (
     <div>
@@ -114,7 +115,8 @@ export default async function GovernmentFormsPage({
           <div className={styles.toolbar}>
             <PrintButton
               className={styles.downloadButton}
-              fileName={fileName}
+              fileName={zipName}
+              bundle="zip"
               label={t("download", { count: forms.length })}
               orientation="landscape"
               stageWidth={COMPLIANCE_STAGE_WIDTH}

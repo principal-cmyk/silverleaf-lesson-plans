@@ -90,7 +90,7 @@ function Page({
   return (
     <section className={styles.page} data-print-page>
       {children}
-      <div className={styles.pagenum}>
+      <div className={styles.pagenum} data-print-hide>
         {n} / {total}
       </div>
     </section>
@@ -350,8 +350,11 @@ function PageClose({ plan }: { plan: StructuredLessonPlan }) {
 export default function LessonPlanDocument({
   plan,
   showPrint = false,
+  fileName = pdfFileName(plan),
 }: {
   plan: StructuredLessonPlan;
+  /** PDF name for the export (a batch ZIP names each plan's file by it). */
+  fileName?: string;
   /**
    * Offer the branded PDF export. OFF by default: teachers download the official
    * government form instead (see `ComplianceDocument`), so defaulting to `false`
@@ -361,12 +364,11 @@ export default function LessonPlanDocument({
   showPrint?: boolean;
 }) {
   const total = 3;
-  const fileName = pdfFileName(plan);
   return (
-    <div className={styles.doc} data-print-root>
+    <div className={styles.doc} data-print-root data-print-file={fileName}>
       {showPrint ? (
-        <div className={styles.printBar}>
-          <PrintButton className={styles.printButton} fileName={fileName} />
+        <div className={styles.printBar} data-print-hide>
+          <PrintButton className={styles.printButton} fileName={fileName} overflow="flow" />
         </div>
       ) : null}
       <Page n={1} total={total}>

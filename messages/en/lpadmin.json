@@ -162,8 +162,8 @@
         "publish": "Publish",
         "unpublish": "Unpublish",
         "delete": "Delete",
-        "download": "Download government forms (PDF)",
-        "downloadPlans": "Download lesson plans (PDF)",
+        "download": "Download government forms (ZIP)",
+        "downloadPlans": "Download lesson plans (ZIP)",
         "clear": "Clear selection",
         "working": "Working…",
         "publishedCount": "{count, plural, one {# plan} other {# plans}} published.",
@@ -171,26 +171,26 @@
         "deletedCount": "{count, plural, one {# plan} other {# plans}} deleted.",
         "blockedCount": "{count, plural, one {# plan was} other {# plans were}} kept because teachers have used or rated them — unpublish instead.",
         "confirmDelete": "Delete {count, plural, one {# plan} other {# plans}}? This cannot be undone.",
-        "tooManyForms": "One PDF can hold at most {max} plans. Select fewer plans and try again.",
+        "tooManyForms": "One download can hold at most {max} plans. Select fewer plans and try again.",
         "error": "Something went wrong. Try again."
       },
       "forms": {
         "back": "← Back to plans",
         "heading": "Government forms",
-        "summary": "{count, plural, one {# form is} other {# forms are}} ready to download as one PDF.",
-        "keepOpen": "Keep this tab open while the PDF is prepared — a large selection can take a few minutes.",
+        "summary": "{count, plural, one {# form is} other {# forms are}} ready to download as a ZIP file, one PDF per plan.",
+        "keepOpen": "Keep this tab open while the files are prepared — a large selection can take a few minutes.",
         "none": "No plans were selected. Go back to Plans, tick the plans you want, then choose Download government forms.",
         "skipped": "{count, plural, one {# plan was} other {# plans were}} left out because they have no government form (they were not made in AI Studio):",
-        "download": "Download {count, plural, one {# form} other {# forms}} as one PDF"
+        "download": "Download {count, plural, one {# form} other {# forms}} (ZIP)"
       },
       "lessonPlans": {
         "back": "← Back to plans",
         "heading": "Lesson plans",
-        "summary": "{count, plural, one {# lesson plan is} other {# lesson plans are}} ready to download as one PDF.",
-        "keepOpen": "Keep this tab open while the PDF is prepared — a large selection can take a few minutes.",
+        "summary": "{count, plural, one {# lesson plan is} other {# lesson plans are}} ready to download as a ZIP file, one PDF per plan.",
+        "keepOpen": "Keep this tab open while the files are prepared — a large selection can take a few minutes.",
         "none": "No plans were selected. Go back to Plans, tick the plans you want, then choose Download lesson plans.",
         "skipped": "{count, plural, one {# plan was} other {# plans were}} left out because they have no lesson plan document (they were not made in AI Studio):",
-        "download": "Download {count, plural, one {# lesson plan} other {# lesson plans}} as one PDF"
+        "download": "Download {count, plural, one {# lesson plan} other {# lesson plans}} (ZIP)"
       }
     }
   }

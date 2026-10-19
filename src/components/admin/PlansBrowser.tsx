@@ -23,8 +23,8 @@
  * it survives "Show more". "Select all" asks the server for every id matching
  * the filters (not just the loaded rows); Publish / Unpublish / Delete then run
  * as bulk server actions, and "Download government forms" / "Download lesson
- * plans" open the combined form / branded-document page for the selection in a
- * new tab, where the PDF is built.
+ * plans" open the batch form / branded-document page for the selection in a
+ * new tab, where the files are built.
  */
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";

@@ -26,7 +26,8 @@ export const dynamic = "force-dynamic";
  * ids in `?ids=`. Every plan whose `content_json` parses is rendered as the
  * Silverleaf-branded `LessonPlanDocument` (without its own download button),
  * all inside ONE `[data-print-root]`, so the single PrintButton at the top
- * captures every page into one combined portrait PDF. Plans without structured
+ * captures every plan, each into its own portrait PDF, and downloads them
+ * together as one ZIP. Plans without structured
  * content are listed as skipped.
  *
  * Admin-only: teachers never get the branded PDF (see `LessonPlanDocument`).
@@ -74,10 +75,10 @@ export default async function LessonPlansPdfPage({
 
   const first = plans[0];
   const last = plans[plans.length - 1];
-  const fileName =
+  const zipName =
     plans.length === 1
-      ? `${first!.filename}_Lesson_Plan.pdf`
-      : `Lesson_Plans_${first?.filename}_to_${last?.filename}.pdf`;
+      ? `${first!.filename}_Lesson_Plan.zip`
+      : `Lesson_Plans_${first?.filename}_to_${last?.filename}.zip`;
 
   return (
     <div>
@@ -110,15 +111,17 @@ export default async function LessonPlansPdfPage({
           <div className={styles.toolbar}>
             <PrintButton
               className={styles.downloadButton}
-              fileName={fileName}
+              fileName={zipName}
+              bundle="zip"
               label={t("download", { count: plans.length })}
               scale={2}
               jpegQuality={0.85}
+              overflow="flow"
             />
           </div>
-          {plans.map(({ id, plan }) => (
+          {plans.map(({ id, filename, plan }) => (
             <div key={id} className={styles.form}>
-              <LessonPlanDocument plan={plan} />
+              <LessonPlanDocument plan={plan} fileName={`${filename}_Lesson_Plan.pdf`} />
             </div>
           ))}
         </div>
