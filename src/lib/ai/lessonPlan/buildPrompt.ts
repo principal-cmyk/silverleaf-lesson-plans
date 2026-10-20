@@ -104,6 +104,21 @@ export function isScriptedSchemeLesson(schemeLesson: string): boolean {
   return staged && tieredOrAssessed;
 }
 
+/** How the plan's free-text fields must be laid out (always sent). Exported for tests. */
+export const LAYOUT_SECTION =
+  "=== LAYOUT OF THE TEXT FIELDS ===\n" +
+  "The plan is printed for teachers, so lay out these strings exactly as follows.\n" +
+  "- Each teaching stage's `text` (introduction_hook, i_do, we_do, you_do): ONE " +
+  "instruction per line, each line starting with \"- \". Never run several " +
+  "instructions together in one paragraph. When the stage has named parts " +
+  "(KLP 1, Round 1, Step 1, Q1), start each part's line with its name, e.g. " +
+  "\"- Round 1 (Choral): …\". Number sub-steps inside a line \"1) … 2) …\".\n" +
+  "- `exit_ticket`: optionally one first line telling pupils how to answer; then " +
+  "each question on its own line as \"Q1: …\", \"Q2: …\" with NO answer or marking " +
+  "note on that line; then a line \"Marking guide:\"; then each answer on its own " +
+  "line as \"Q1: …\", \"Q2: …\" in the same order. A closing activity with no " +
+  "questions is a single line.";
+
 /**
  * Assemble the system message and user prompt for lesson-plan generation.
  *
@@ -175,9 +190,17 @@ export function buildPrompt(input: BuildPromptInput): BuiltPrompt {
         "wins: the rule that an exit ticket may be any short closing activity does " +
         "NOT apply here — `exit_ticket` must reproduce the row's numbered exit-ticket " +
         "questions (Q1, Q2, …) in full, each with its expected answer and the " +
-        "marking guide, not a shortened substitute.",
+        "marking guide, not a shortened substitute — laid out as the LAYOUT " +
+        "section says: the questions first, then the marking guide.",
     );
   }
+
+  // 5c. Layout of the free-text fields. The plan document, the government
+  // form and the slides read the steps and the exit ticket's questions and
+  // answers out of these strings (`planText`); run together in a paragraph
+  // they print as one block, with the answers mixed into the questions. Code,
+  // not a prompt part, because the renderers depend on it.
+  sections.push(LAYOUT_SECTION);
 
   // 6. Task with placeholders filled.
   const taskTmpl = part(parts, "task_template");

@@ -439,6 +439,31 @@
   font-size: 0.98em;
   margin: 0.2em 0 0.6em;
 }
+.stage .txt p {
+  margin: 0 0 0.35em;
+}
+/* One line per step; labelled steps ("KLP 1", "Round 2") lead with the label. */
+.steps {
+  margin: 0;
+  padding-left: 1.4em;
+}
+.steps li {
+  margin: 0 0 0.3em;
+}
+.steps .steps {
+  margin-top: 0.25em;
+}
+.labelled {
+  list-style: none;
+  padding-left: 0;
+}
+.labelled .steps {
+  padding-left: 1.4em;
+}
+.stepLabel {
+  color: var(--e);
+  white-space: nowrap;
+}
 .frame {
   background: var(--gold15);
   border-left: 4px solid var(--gold);
@@ -521,6 +546,38 @@
 .exit p {
   color: var(--e);
   margin: 0;
+}
+.exit .exitLead {
+  margin: 0 0 6px;
+  font-style: italic;
+}
+.exitQuestions,
+.markingKey ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: var(--e);
+}
+.exitQuestions li,
+.markingKey li {
+  margin: 0 0 5px;
+}
+/* The answers, apart from the questions, so the key can be covered or cut off. */
+.markingKey {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  break-inside: avoid;
+}
+.exit .markingNotes {
+  margin-top: 4px;
+}
+.markingKey h3 {
+  margin: 0 0 6px;
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
+  color: var(--e);
 }
 .understand {
   background: var(--l);

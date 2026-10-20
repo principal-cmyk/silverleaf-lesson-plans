@@ -8,6 +8,8 @@
  *
  * Pure module (no `server-only`, no DB, no network).
  */
+import { keyLabel, splitExitTicket, stepLines } from "@/lib/lesson/planText";
+
 import { TEACHING_STAGES, type StructuredLessonPlan } from "./structuredSchema";
 
 /** Labels for the teaching stages, indexed by stage key. */
@@ -26,11 +28,33 @@ function renderStage(
   stage: { depth: string; text: string; sentence_frame: string; checkpoint: string },
 ): string {
   const label = STAGE_LABEL_MAP[key] ?? key;
+  // One step per line (`planText`), so the steps do not run together.
+  const [first = "", ...rest] = stepLines(stage.text);
+  const body = rest.length > 0 ? `${first}\n\n${bullets(rest)}` : first;
   return (
-    `### ${label} (${stage.depth})\n${stage.text}\n\n` +
+    `### ${label} (${stage.depth})\n${body}\n\n` +
     `- *Sentence frame:* ${stage.sentence_frame}\n` +
     `- *Checkpoint (assessment):* ${stage.checkpoint}\n`
   );
+}
+
+/** The exit ticket: its questions, then the answers as a separate marking key. */
+function renderExitTicket(text: string): string {
+  const { lead, questions, notes } = splitExitTicket(text);
+  if (questions.length === 0) return `**Exit ticket:** ${text}`;
+  const name = (label: string, i: number) => label || `${i + 1}.`;
+  const out = [`**Exit ticket:**${lead ? ` ${lead}` : ""}`, ""];
+  out.push(bullets(questions.map((q, i) => `**${name(q.label, i)}** ${q.question}`)));
+  if (questions.some((q) => q.answer) || notes) {
+    out.push("", "**Marking key:**", "");
+    out.push(
+      bullets([
+        ...questions.flatMap((q, i) => (q.answer ? [`**${name(keyLabel(q.label), i)}** ${q.answer}`] : [])),
+        ...(notes ? [notes] : []),
+      ]),
+    );
+  }
+  return out.join("\n");
 }
 
 /**
@@ -87,7 +111,7 @@ ${digitalBlock}
 ## Conclusion and exit ticket
 ${ex.understanding}
 
-**Exit ticket:** ${ex.exit_ticket}
+${renderExitTicket(ex.exit_ticket)}
 
 **Assessment method:** ${plan.assessment_method}
 

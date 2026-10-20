@@ -117,6 +117,29 @@ describe("toComplianceForm", () => {
     ]);
   });
 
+  it("puts each step on its own line and the exit-ticket answers after the questions", () => {
+    const plan = {
+      ...VALID_PLAN,
+      teaching_sequence: {
+        ...VALID_PLAN.teaching_sequence,
+        i_do: { ...VALID_PLAN.teaching_sequence.i_do, text: "Model it. KLP 1: Show. KLP 2: Explain." },
+      },
+      conclusion_and_exit_ticket: {
+        ...VALID_PLAN.conclusion_and_exit_ticket,
+        exit_ticket: "Q1: Is 6 many? (Expected: Yes.) Q2: Is 1 few? (Expected: Yes, 1 is few.)",
+      },
+    };
+    const [, competence, , assessment] = toComplianceForm(plan, 40).steps;
+    expect(competence!.teaching.slice(0, 3)).toEqual(["I Do — Model it.", "KLP 1: Show.", "KLP 2: Explain."]);
+    expect(assessment!.learning).toEqual([
+      "Q1: Is 6 many?",
+      "Q2: Is 1 few?",
+      "Marking key:",
+      "Q1: Yes.",
+      "Q2: Yes, 1 is few.",
+    ]);
+  });
+
   it("omits the frame clause when a stage carries no sentence frame", () => {
     const plan = structuredClone(VALID_PLAN);
     plan.teaching_sequence.introduction_hook.sentence_frame = "";

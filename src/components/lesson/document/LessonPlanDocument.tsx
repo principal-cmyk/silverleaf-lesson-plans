@@ -16,6 +16,11 @@
  *   Page 3  Differentiation & Close — tiers + conclusion/exit ticket +
  *                           assessment method + watch-for/reflection + gaps
  *
+ * A stage's text and the exit ticket are single strings in the plan; they are
+ * laid out from the structure inside them (`planText`): each step on its own
+ * line, and the exit ticket's questions first with their answers gathered in
+ * a separate marking key.
+ *
  * All text comes through JSX, so React auto-escapes it — there is no
  * dangerouslySetInnerHTML and untrusted content can never inject markup.
  *
@@ -33,6 +38,7 @@ import {
   TEACHING_STAGES,
   type StructuredLessonPlan,
 } from "@/lib/ai/lessonPlan/structuredSchema";
+import { keyLabel, splitExitTicket, splitSteps, type Step } from "@/lib/lesson/planText";
 import PrintButton from "./PrintButton";
 import styles from "./lessonPlanDocument.module.css";
 
@@ -183,6 +189,73 @@ function PageOverview({ plan }: { plan: StructuredLessonPlan }) {
   );
 }
 
+/**
+ * A list of steps: labelled ones ("KLP 1") lead with their label, a numbered
+ * sequence is numbered, anything else is bulleted.
+ */
+function StepList({ steps, numbered }: { steps: Step[]; numbered: boolean }) {
+  const labelled = steps.some((s) => s.label);
+  const List = numbered && !labelled ? "ol" : "ul";
+  return (
+    <List className={cx(styles.steps, labelled && styles.labelled)}>
+      {steps.map((step, i) => (
+        <li key={i}>
+          {step.label ? <b className={styles.stepLabel}>{step.label}</b> : null}
+          {step.text ? ` ${step.text}` : null}
+          {/* Sub-steps are always a numbered run ("1) … 2) …", "(i) … (ii)"). */}
+          {step.sub.length > 0 ? <StepList steps={step.sub} numbered /> : null}
+        </li>
+      ))}
+    </List>
+  );
+}
+
+/** A stage's text: its introduction, then one line per step. */
+function StageText({ text }: { text: string }) {
+  const { lead, steps, numbered } = splitSteps(text);
+  return (
+    <div className={styles.txt}>
+      {lead ? <p>{lead}</p> : null}
+      {steps.length > 0 ? <StepList steps={steps} numbered={numbered} /> : null}
+    </div>
+  );
+}
+
+/** The exit ticket's questions, then their answers as a separate marking key. */
+function ExitTicket({ text }: { text: string }) {
+  const { lead, questions, notes } = splitExitTicket(text);
+  if (questions.length === 0) return <p>{lead}</p>;
+  const answered = questions.filter((q) => q.answer);
+  const name = (q: (typeof questions)[number], i: number) => q.label || `${i + 1}.`;
+  return (
+    <>
+      {lead ? <p className={styles.exitLead}>{lead}</p> : null}
+      <ul className={styles.exitQuestions}>
+        {questions.map((q, i) => (
+          <li key={i}>
+            <b className={styles.stepLabel}>{name(q, i)}</b> {q.question}
+          </li>
+        ))}
+      </ul>
+      {answered.length > 0 || notes ? (
+        <div className={styles.markingKey}>
+          <h3>MARKING KEY</h3>
+          <ul>
+            {questions.map((q, i) =>
+              q.answer ? (
+                <li key={i}>
+                  <b className={styles.stepLabel}>{keyLabel(q.label) || `${i + 1}.`}</b> {q.answer}
+                </li>
+              ) : null,
+            )}
+          </ul>
+          {notes ? <p className={styles.markingNotes}>{notes}</p> : null}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 /* ── Page 2: materials + the surface→deep teaching sequence ────────────────── */
 function PageTeaching({ plan }: { plan: StructuredLessonPlan }) {
   const ts = plan.teaching_sequence;
@@ -220,7 +293,7 @@ function PageTeaching({ plan }: { plan: StructuredLessonPlan }) {
                 <span className={cx(styles.pill, depthClass)}>{s.depth}</span>
               </div>
               <div className={styles.body}>
-                <p className={styles.txt}>{s.text}</p>
+                <StageText text={s.text} />
                 {s.sentence_frame ? (
                   <div className={styles.frame}>
                     <b>Sentence frame:</b> {s.sentence_frame}
@@ -303,7 +376,7 @@ function PageClose({ plan }: { plan: StructuredLessonPlan }) {
         <div className={styles.exit}>
           <div className={styles.et}>EXIT TICKET</div>
           <h2>Before they go</h2>
-          <p>{ex.exit_ticket}</p>
+          <ExitTicket text={ex.exit_ticket} />
         </div>
         <div className={styles.method}>
           <h3>ASSESSMENT METHOD</h3>

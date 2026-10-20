@@ -313,6 +313,17 @@ describe("buildPrompt", () => {
     expect(fidelityAt).toBeLessThan(prompt.indexOf("meta.source_lesson_idx=7"));
   });
 
+  it("always asks for one instruction per line and exit-ticket answers apart from the questions", () => {
+    for (const schemeLesson of [baseInput.schemeLesson, scriptedLesson]) {
+      const { prompt } = buildPrompt({ ...baseInput, schemeLesson });
+      const at = prompt.indexOf("=== LAYOUT OF THE TEXT FIELDS ===");
+      expect(at).toBeGreaterThan(prompt.indexOf("=== SCHEME LESSON"));
+      expect(at).toBeLessThan(prompt.indexOf("meta.source_lesson_idx=7"));
+      expect(prompt).toContain("ONE instruction per line");
+      expect(prompt).toContain('then a line "Marking guide:"');
+    }
+  });
+
   it("omits the SOURCE FIDELITY section for a sparse planning row", () => {
     const { prompt } = buildPrompt(baseInput);
     expect(prompt).not.toContain("=== SOURCE FIDELITY ===");

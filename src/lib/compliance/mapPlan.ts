@@ -18,6 +18,10 @@
  *   we_do.rounds[]                        → we_do.text
  *   you_do.questions[] / side_group_pull  → you_do.text
  *   exit_ticket[{dok,question,answer}]    → exit_ticket (one prose string)
+ *
+ * The flat strings still carry their steps and questions ("KLP 1: …",
+ * "Q1: … (Marking guide: …)"); `planText` recovers them so each step is its
+ * own line in the cell and the exit ticket's answers follow as a marking key.
  *   per-stage `time`                      → (nothing — we hold no timing)
  *
  * The synthesised LEARNING ACTIVITIES prose deliberately keeps the handover's
@@ -27,6 +31,7 @@
  * and `mapPlan.test.ts` can assert on it directly.
  */
 import type { StructuredLessonPlan } from "@/lib/ai/lessonPlan/structuredSchema";
+import { exitTicketLines, stepLines } from "@/lib/lesson/planText";
 
 import type { ComplianceForm, ComplianceStepRow } from "./form";
 
@@ -72,6 +77,12 @@ function learnersUse(base: string, sentenceFrame: string): string {
  * `durationMinutes` comes from the `lesson_plans` row rather than the plan JSON
  * (the schema holds no duration); pass `null` for a plan with none.
  */
+/** A stage's steps, one per line, the first headed "I Do — …". */
+function headed(name: string, text: string): string[] {
+  const [first = "", ...rest] = stepLines(text);
+  return [`${name} — ${first}`, ...rest];
+}
+
 export function toComplianceForm(
   plan: StructuredLessonPlan,
   durationMinutes: number | null,
@@ -85,7 +96,7 @@ export function toComplianceForm(
     {
       step: "UTANGULIZI / INTRODUCTION",
       time: "",
-      teaching: [ts.introduction_hook.text],
+      teaching: stepLines(ts.introduction_hook.text),
       learning: [
         learnersUse(
           "Learners observe and answer the guiding question orally",
@@ -97,7 +108,7 @@ export function toComplianceForm(
     {
       step: "KUENDELEZA UJENZI WA UMAHIRI / COMPETENCE DEVELOPMENT",
       time: "",
-      teaching: [`I Do — ${ts.i_do.text}`, `We Do — ${ts.we_do.text}`],
+      teaching: [...headed("I Do", ts.i_do.text), ...headed("We Do", ts.we_do.text)],
       learning: [
         learnersUse(
           "Learners follow the teacher's modelling, then practise together",
@@ -109,7 +120,7 @@ export function toComplianceForm(
     {
       step: "KUBUNI / DESIGN",
       time: "",
-      teaching: [ts.you_do.text],
+      teaching: stepLines(ts.you_do.text),
       learning: [
         learnersUse("Learners work on the task independently", ts.you_do.sentence_frame),
       ],
@@ -121,7 +132,7 @@ export function toComplianceForm(
       teaching: [
         `Administers the exit ticket; records evidence (${plan.assessment_method})`,
       ],
-      learning: [plan.conclusion_and_exit_ticket.exit_ticket],
+      learning: exitTicketLines(plan.conclusion_and_exit_ticket.exit_ticket),
       testing: [plan.conclusion_and_exit_ticket.understanding],
     },
   ];
