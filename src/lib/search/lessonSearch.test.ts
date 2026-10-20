@@ -346,4 +346,25 @@ describe("getFacetCounts", () => {
     expect(astro?.count).toBe(2);
     expect(botany).toBeUndefined();
   });
+
+  it("narrows each facet by the OTHER facets' selections, but not by its own", async () => {
+    const facets = await getFacetCounts({ subject: SUBJECT_A });
+    // Subject counts ignore the subject selection: both subjects still offered.
+    expect(facets.subjects.find((b) => b.value === SUBJECT_B)?.count).toBe(2);
+    // Grade and week counts follow it: only the astronomy plans.
+    expect(facets.grades.find((b) => b.value === GRADE)?.count).toBe(2);
+    const weekTotal = facets.weeks.reduce((n, b) => n + b.count, 0);
+    const all = await searchLessonPlans({ subject: SUBJECT_A });
+    expect(weekTotal).toBe(all.total);
+  });
+});
+
+describe("searchLessonPlans — week facet", () => {
+  it("filters by week number", async () => {
+    const all = await searchLessonPlans({ grade: GRADE, pageSize: 100 });
+    const week = all.rows[0]!.week;
+    const res = await searchLessonPlans({ grade: GRADE, week: String(week), pageSize: 100 });
+    expect(res.total).toBe(all.rows.filter((r) => r.week === week).length);
+    expect(res.rows.every((r) => r.week === week)).toBe(true);
+  });
 });

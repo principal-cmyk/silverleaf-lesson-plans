@@ -51,6 +51,8 @@ export interface PlanFilterParams {
   grade?: FacetValue;
   /** Term facet (equality / IN), matched against `lesson_plans.term`. */
   term?: FacetValue;
+  /** Week facet: week numbers as strings ("3"), matched against `lesson_plans.week`. */
+  week?: FacetValue;
 }
 
 /** Full search inputs: filters + sort + pagination + the caller's staff id. */
@@ -101,6 +103,21 @@ function facetPredicate(
 }
 
 /**
+ * The week facet: like {@link facetPredicate}, for the integer `week` column
+ * (values arrive from the URL as strings; non-numbers are ignored).
+ */
+function weekPredicate(value: FacetValue | undefined): SQL | undefined {
+  if (value === undefined) return undefined;
+  const weeks = (Array.isArray(value) ? value : [value])
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n > 0);
+  if (weeks.length === 0) return undefined;
+  return weeks.length === 1
+    ? eq(lessonPlans.week, weeks[0]!)
+    : inArray(lessonPlans.week, weeks);
+}
+
+/**
  * The full-text arm: tsvector match OR the universal ILIKE substring fallback.
  * On Postgres with `SEARCH_TRIGRAM` set, also OR in a trigram-similarity arm.
  * Never emitted when `q` is empty (the caller omits it).
@@ -139,6 +156,7 @@ export function buildPlanWhere(params: PlanFilterParams): SQL {
     facetPredicate(lessonPlans.subject, params.subject),
     facetPredicate(lessonPlans.grade, params.grade),
     facetPredicate(lessonPlans.term, params.term),
+    weekPredicate(params.week),
     q ? textPredicate(q) : undefined,
   ];
 

@@ -16,6 +16,7 @@ import { useTranslations } from "next-intl";
 
 import { usePathname, useRouter } from "@/i18n/navigation";
 import type { PlanFilters, PlanFilterOptions } from "@/lib/admin/plansQuery";
+import { subjectLabel } from "@/lib/naming/subjectLabel";
 import styles from "./PlansFilterBar.module.css";
 
 export interface PlansFilterBarProps {
@@ -111,7 +112,7 @@ export default function PlansFilterBar({
         <option value="">{t("allSubjects")}</option>
         {options.subjects.map((s) => (
           <option key={s} value={s}>
-            {s}
+            {subjectLabel(s)}
           </option>
         ))}
       </select>

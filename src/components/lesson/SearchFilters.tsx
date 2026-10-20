@@ -13,11 +13,14 @@
  *  - Text box: controlled local state, debounced ~300ms before it hits the URL
  *    (so typing doesn't fire a request per keystroke). Submitting the form
  *    flushes immediately.
- *  - Facets (subject / grade / term): multi-select toggle chips. Selecting a
- *    chip adds its value to that facet's repeated query param; deselecting
- *    removes it.
- *  - Sort: a two-way toggle (Relevance / Browse order). Relevance is only
- *    meaningful with a text query, so it's disabled when the box is empty.
+ *  - Facets (grade / subject / term / week): multi-select toggle chips, in the
+ *    order a teacher narrows down. Each facet's options are counted against
+ *    the other selections, and empty ones are hidden, so no chip leads to an
+ *    empty page. Selected filters also show as removable pills.
+ *  - On phones the facets fold behind a "Filters (n)" button so results are
+ *    on the first screen.
+ *  - Sort: shown only with a text query (Best match, the default, / Course
+ *    order); browsing is always in course order.
  *  - Any change to a filter resets pagination back to page 1.
  *
  * All controls are >= 44px tall for comfortable tapping on phones.
@@ -27,6 +30,7 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { usePathname, useRouter } from "@/i18n/navigation";
+import { subjectLabel } from "@/lib/naming/subjectLabel";
 import styles from "./SearchFilters.module.css";
 
 /** One selectable facet bucket. */
@@ -35,18 +39,19 @@ export interface FacetOption {
   count: number;
 }
 
+type FacetKey = "grade" | "subject" | "term" | "week";
+
 export interface SearchFiltersProps {
   /** The current text query (from the URL) — seeds the input. */
   q: string;
-  /** Available facet buckets for the current query. */
-  subjects: FacetOption[];
+  /** Available facet buckets, each narrowed by the other facets' selections. */
   grades: FacetOption[];
+  subjects: FacetOption[];
   terms: FacetOption[];
+  weeks: FacetOption[];
   /** Currently-selected facet values (from the URL). */
-  selectedSubjects: string[];
-  selectedGrades: string[];
-  selectedTerms: string[];
-  /** Current sort mode (from the URL). */
+  selected: Record<FacetKey, string[]>;
+  /** Current sort mode (from the URL; relevance is the default with a query). */
   sort: "relevance" | "naming";
 }
 
@@ -55,12 +60,11 @@ const DEBOUNCE_MS = 300;
 
 export default function SearchFilters({
   q,
-  subjects,
   grades,
+  subjects,
   terms,
-  selectedSubjects,
-  selectedGrades,
-  selectedTerms,
+  weeks,
+  selected,
   sort,
 }: SearchFiltersProps) {
   const router = useRouter();
@@ -68,6 +72,8 @@ export default function SearchFilters({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const t = useTranslations("lpSearch");
+  /** Phones: the facets fold away behind a "Filters" button (always open on wider screens). */
+  const [open, setOpen] = useState(false);
 
   // Controlled text input, seeded from the URL and kept in sync if the URL `q`
   // changes underneath us (e.g. back/forward navigation).
@@ -77,11 +83,15 @@ export default function SearchFilters({
   }, [q]);
 
   /**
-   * Push a new querystring built from the *current* URL plus a set of mutations.
-   * `null` deletes a key; a string sets it; a string[] sets repeated values.
-   * Any mutation drops `page` so results restart at page 1.
+   * Navigate to a querystring built from the *current* URL plus a set of
+   * mutations. `null` deletes a key; a string sets it; a string[] sets repeated
+   * values. Any mutation drops `page` so results restart at page 1. Typing
+   * replaces the history entry rather than adding one per keystroke.
    */
-  function commit(mutations: Record<string, string | string[] | null>) {
+  function commit(
+    mutations: Record<string, string | string[] | null>,
+    mode: "push" | "replace" = "push",
+  ) {
     const params = new URLSearchParams(searchParams.toString());
     for (const [key, value] of Object.entries(mutations)) {
       params.delete(key);
@@ -94,8 +104,10 @@ export default function SearchFilters({
     // Filter changes always reset pagination.
     params.delete("page");
     const qs = params.toString();
+    const href = qs ? `${pathname}?${qs}` : pathname;
     startTransition(() => {
-      router.push(qs ? `${pathname}?${qs}` : pathname);
+      if (mode === "replace") router.replace(href, { scroll: false });
+      else router.push(href, { scroll: false });
     });
   }
 
@@ -105,7 +117,7 @@ export default function SearchFilters({
     setText(next);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      commit({ q: next.trim() || null });
+      commit({ q: next.trim() || null }, "replace");
     }, DEBOUNCE_MS);
   }
 
@@ -129,7 +141,7 @@ export default function SearchFilters({
   }
 
   /** Toggle a value within a repeated facet param. */
-  function toggleFacet(key: "subject" | "grade" | "term", value: string) {
+  function toggleFacet(key: FacetKey, value: string) {
     const current = searchParams.getAll(key);
     const next = current.includes(value)
       ? current.filter((v) => v !== value)
@@ -138,20 +150,31 @@ export default function SearchFilters({
   }
 
   function setSort(next: "relevance" | "naming") {
-    // Default sort is naming; only persist `sort` when it diverges.
-    commit({ sort: next === "naming" ? null : next });
+    // Relevance is the default with a query; only persist the override.
+    commit({ sort: next === "relevance" ? null : next });
   }
 
   const hasQuery = text.trim() !== "";
-  const hasAnyFacet =
-    selectedSubjects.length > 0 ||
-    selectedGrades.length > 0 ||
-    selectedTerms.length > 0;
+  const labelOf: Record<FacetKey, (v: string) => string> = {
+    grade: (v) =>
+      /^g\d+$/i.test(v) ? t("gradeLabel", { value: v.slice(1) }) : v,
+    subject: subjectLabel,
+    term: (v) => t("termLabel", { value: v }),
+    week: (v) => t("weekLabel", { value: v }),
+  };
+  const active = (["grade", "subject", "term", "week"] as const).flatMap(
+    (key) =>
+      selected[key].map((value) => ({
+        key,
+        value,
+        label: labelOf[key](value),
+      })),
+  );
 
   function clearAll() {
     setText("");
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    commit({ q: null, subject: [], grade: [], term: [], sort: null });
+    commit({ q: null, subject: [], grade: [], term: [], week: [], sort: null });
   }
 
   return (
@@ -187,81 +210,128 @@ export default function SearchFilters({
         </button>
       </form>
 
-      <div className={styles.sortRow}>
-        <span className={styles.sortLabel}>{t("sort")}</span>
-        <div
-          className={styles.sortToggle}
-          role="group"
-          aria-label={t("sortAriaLabel")}
-        >
-          <button
-            type="button"
-            className={styles.sortOption}
-            aria-pressed={sort === "relevance"}
-            disabled={!hasQuery}
-            title={
-              hasQuery
-                ? t("relevanceEnabledHint")
-                : t("relevanceDisabledHint")
-            }
-            onClick={() => setSort("relevance")}
-          >
-            {t("relevance")}
-          </button>
-          <button
-            type="button"
-            className={styles.sortOption}
-            aria-pressed={sort === "naming"}
-            onClick={() => setSort("naming")}
-          >
-            {t("browseOrder")}
-          </button>
-        </div>
-        {(hasQuery || hasAnyFacet) && (
+      {/* What is applied, each removable in one tap. */}
+      {active.length > 0 || hasQuery ? (
+        <div className={styles.activeRow}>
+          <ul className={styles.activeList} aria-label={t("activeFilters")}>
+            {active.map((f) => (
+              <li key={`${f.key}:${f.value}`}>
+                <button
+                  type="button"
+                  className={styles.activePill}
+                  onClick={() => toggleFacet(f.key, f.value)}
+                  aria-label={t("removeFilter", { label: f.label })}
+                >
+                  {f.label}
+                  <span aria-hidden="true">×</span>
+                </button>
+              </li>
+            ))}
+          </ul>
           <button type="button" className={styles.clearAll} onClick={clearAll}>
             {t("clearAll")}
           </button>
-        )}
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        className={styles.filtersToggle}
+        aria-expanded={open}
+        aria-controls="search-facets"
+        onClick={() => setOpen((o) => !o)}
+      >
+        {open ? t("hideFilters") : t("filtersButton", { count: active.length })}
+      </button>
+
+      <div
+        id="search-facets"
+        className={styles.facets}
+        data-open={open ? "true" : undefined}
+      >
+        <FacetGroup
+          legend={t("facets.grade")}
+          paramKey="grade"
+          options={grades}
+          selected={selected.grade}
+          onToggle={toggleFacet}
+          labelOf={labelOf.grade}
+        />
+        <FacetGroup
+          legend={t("facets.subject")}
+          paramKey="subject"
+          options={subjects}
+          selected={selected.subject}
+          onToggle={toggleFacet}
+          labelOf={labelOf.subject}
+        />
+        <FacetGroup
+          legend={t("facets.term")}
+          paramKey="term"
+          options={terms}
+          selected={selected.term}
+          onToggle={toggleFacet}
+          labelOf={labelOf.term}
+        />
+        <FacetGroup
+          legend={t("facets.week")}
+          paramKey="week"
+          options={weeks}
+          selected={selected.week}
+          onToggle={toggleFacet}
+          labelOf={labelOf.week}
+          compact
+        />
       </div>
 
-      <FacetGroup
-        legend={t("facets.subject")}
-        paramKey="subject"
-        options={subjects}
-        selected={selectedSubjects}
-        onToggle={toggleFacet}
-        labelOf={(v) => v}
-      />
-      <FacetGroup
-        legend={t("facets.grade")}
-        paramKey="grade"
-        options={grades}
-        selected={selectedGrades}
-        onToggle={toggleFacet}
-        labelOf={(v) => v}
-      />
-      <FacetGroup
-        legend={t("facets.term")}
-        paramKey="term"
-        options={terms}
-        selected={selectedTerms}
-        onToggle={toggleFacet}
-        labelOf={(v) => t("termLabel", { value: v })}
-      />
+      {/* Ordering only matters for a typed search; browsing is always in course order. */}
+      {hasQuery ? (
+        <div className={styles.sortRow}>
+          <span className={styles.sortLabel}>{t("sort")}</span>
+          <div
+            className={styles.sortToggle}
+            role="group"
+            aria-label={t("sortAriaLabel")}
+          >
+            <button
+              type="button"
+              className={styles.sortOption}
+              aria-pressed={sort === "relevance"}
+              title={t("relevanceEnabledHint")}
+              onClick={() => setSort("relevance")}
+            >
+              {t("relevance")}
+            </button>
+            <button
+              type="button"
+              className={styles.sortOption}
+              aria-pressed={sort === "naming"}
+              onClick={() => setSort("naming")}
+            >
+              {t("browseOrder")}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 interface FacetGroupProps {
   legend: string;
-  paramKey: "subject" | "grade" | "term";
+  paramKey: FacetKey;
   options: FacetOption[];
   selected: string[];
-  onToggle: (key: "subject" | "grade" | "term", value: string) => void;
+  onToggle: (key: FacetKey, value: string) => void;
   labelOf: (value: string) => string;
+  /** Small chips (weeks: many short options). */
+  compact?: boolean;
 }
 
-/** A labelled group of multi-select facet chips. */
+/**
+ * A labelled group of multi-select facet chips. Options the other filters
+ * leave empty are not offered (a selected one stays, so it can be removed).
+ */
 function FacetGroup({
   legend,
   paramKey,
@@ -269,20 +339,24 @@ function FacetGroup({
   selected,
   onToggle,
   labelOf,
+  compact,
 }: FacetGroupProps) {
-  if (options.length === 0) return null;
+  const shown = options.filter(
+    (o) => o.count > 0 || selected.includes(o.value),
+  );
+  if (shown.length === 0) return null;
 
   return (
     <fieldset className={styles.facetGroup}>
       <legend className={styles.facetLegend}>{legend}</legend>
       <div className={styles.chips}>
-        {options.map((opt) => {
+        {shown.map((opt) => {
           const isOn = selected.includes(opt.value);
           return (
             <button
               key={opt.value}
               type="button"
-              className={styles.chip}
+              className={`${styles.chip} ${compact ? styles.chipCompact : ""}`}
               aria-pressed={isOn}
               onClick={() => onToggle(paramKey, opt.value)}
             >

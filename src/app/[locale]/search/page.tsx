@@ -2,7 +2,7 @@
  * Lesson-plan search page.
  *
  * The URL querystring is the single source of truth. This Server Component
- * reads `q`, the repeated facet params (`subject`/`grade`/`term`), `sort`, and
+ * reads `q`, the repeated facet params (`subject`/`grade`/`term`/`week`), `sort`, and
  * `page`, runs the search + facet-count queries in parallel, and renders the
  * mobile-first results UI. The interactive <SearchFilters> writes the URL back,
  * which re-runs this component (it is `force-dynamic`, so never cached).
@@ -10,7 +10,11 @@
 import { getTranslations } from "next-intl/server";
 
 import { requireUser } from "@/lib/auth";
-import { searchLessonPlans, type SearchSort } from "@/lib/search/lessonSearch";
+import {
+  DEFAULT_PAGE_SIZE,
+  searchLessonPlans,
+  type SearchSort,
+} from "@/lib/search/lessonSearch";
 import { getFacetCounts } from "@/lib/search/facets";
 import SearchFilters from "@/components/lesson/SearchFilters";
 import PlanResultList from "@/components/lesson/PlanResultList";
@@ -26,6 +30,7 @@ interface SearchPageProps {
     subject?: string | string[];
     grade?: string | string[];
     term?: string | string[];
+    week?: string | string[];
     sort?: string;
     page?: string;
   }>;
@@ -57,16 +62,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const subjects = toList(sp.subject);
   const grades = toList(sp.grade);
   const terms = toList(sp.term);
+  const weeks = toList(sp.week);
   const page = toPage(sp.page);
-  // Relevance is the only non-default sort; everything else falls back to
-  // naming order.
-  const sort: SearchSort = sp.sort === "relevance" ? "relevance" : "naming";
+  // A typed search shows its best matches first unless the teacher asks for
+  // course order; browsing (no query) is always in course order.
+  const sort: SearchSort = q && sp.sort !== "naming" ? "relevance" : "naming";
 
   const filterParams = {
     q,
     subject: subjects,
     grade: grades,
     term: terms,
+    week: weeks,
   };
 
   const [{ rows, total }, facets] = await Promise.all([
@@ -88,16 +95,29 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
       <SearchFilters
         q={q}
-        subjects={facets.subjects}
         grades={facets.grades}
+        subjects={facets.subjects}
         terms={facets.terms}
-        selectedSubjects={subjects}
-        selectedGrades={grades}
-        selectedTerms={terms}
+        weeks={facets.weeks}
+        selected={{ grade: grades, subject: subjects, term: terms, week: weeks }}
         sort={sort}
       />
 
-      <PlanResultList rows={rows} total={total} />
+      <PlanResultList
+        rows={rows}
+        total={total}
+        page={page}
+        pageSize={DEFAULT_PAGE_SIZE}
+        // Every current param but the page, for the page links.
+        query={{
+          ...(q ? { q } : {}),
+          subject: subjects,
+          grade: grades,
+          term: terms,
+          week: weeks,
+          ...(sp.sort === "naming" ? { sort: "naming" } : {}),
+        }}
+      />
     </main>
   );
 }

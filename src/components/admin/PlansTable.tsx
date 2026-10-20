@@ -34,6 +34,7 @@ import {
   type AdminActionResult,
 } from "@/lib/actions/adminPlans";
 import type { PlanRow } from "@/lib/admin/plansQuery";
+import { subjectLabel } from "@/lib/naming/subjectLabel";
 import styles from "./PlansTable.module.css";
 
 export type { PlanRow };
@@ -139,7 +140,7 @@ function PlanRowItem({
 
       <div className={styles.cellMeta}>
         <span className={styles.metaItem}>{plan.grade}</span>
-        <span className={styles.metaItem}>{plan.subject}</span>
+        <span className={styles.metaItem}>{subjectLabel(plan.subject)}</span>
         <span className={styles.metaItem}>
           T{plan.term} · W{plan.week} · L{plan.lesson}
         </span>

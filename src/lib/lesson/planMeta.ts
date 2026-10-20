@@ -13,6 +13,8 @@
  */
 import type { getTranslations } from "next-intl/server";
 
+import { subjectLabel } from "@/lib/naming/subjectLabel";
+
 /** Translator bound to the `lpPlan` namespace (provides the `meta.*` keys). */
 type PlanMetaTranslator = Awaited<ReturnType<typeof getTranslations<"lpPlan">>>;
 
@@ -35,6 +37,8 @@ export interface PlanMetaFields {
  *
  * Grades are stored as `G<n>` tokens; those render via the localised
  * `meta.grade` label. Anything else (legacy/imported values) is shown raw.
+ * Subjects show their readable name ("HealthAndEnvironment" → "Health and
+ * Environment").
  */
 export function formatPlanMeta(
   plan: PlanMetaFields,
@@ -49,7 +53,7 @@ export function formatPlanMeta(
 
   const parts = [
     gradeLabel,
-    plan.subject,
+    subjectLabel(plan.subject),
     t("meta.term", { value: plan.term }),
     t(variant === "short" ? "meta.weekShort" : "meta.week", { value: plan.week }),
     t(variant === "short" ? "meta.lessonShort" : "meta.lesson", { value: plan.lesson }),
