@@ -11,7 +11,8 @@ import type { StructuredLessonPlan } from "@/lib/ai/lessonPlan/structuredSchema"
 
 import { buildSlidesPrompt } from "./buildPrompt";
 import { slideDeckSchema } from "./deckSchema";
-import { deckToSlides, MAX_LIST_ITEMS, scriptAt, teacherExtras } from "./deckToSlides";
+import { answerStep, deckToSlides, hasVisual, MAX_LIST_ITEMS, scriptAt, teacherExtras } from "./deckToSlides";
+import { NO_VISUAL } from "./deckSchema";
 import { defaultTimings, fallbackDeck, planLanguage, sentences } from "./fallbackDeck";
 import { DECK_LABELS } from "./labels";
 
@@ -65,9 +66,21 @@ describe("deckToSlides", () => {
   it("carries each phase's minutes, and times the timed activities", () => {
     const slides = deckToSlides(DECK);
     expect(slides[0]!.time).toBeNull();
-    expect(slides[2]).toMatchObject({ phase: "hook", time: { start: 2, end: 7 }, timer: 5 });
-    expect(slides[7]).toMatchObject({ phase: "weDo", time: { start: 17, end: 27 }, timer: 5 });
-    expect(slides[10]).toMatchObject({ phase: "youDo", time: { start: 27, end: 35 }, timer: 8 });
+    expect(slides[2]).toMatchObject({
+      phase: "hook",
+      time: { start: 2, end: 7 },
+      timer: 5,
+    });
+    expect(slides[7]).toMatchObject({
+      phase: "weDo",
+      time: { start: 17, end: 27 },
+      timer: 5,
+    });
+    expect(slides[10]).toMatchObject({
+      phase: "youDo",
+      time: { start: 27, end: 35 },
+      timer: 8,
+    });
   });
 
   it("reveals list items and worked-example steps one per click, then the book note", () => {
@@ -76,26 +89,52 @@ describe("deckToSlides", () => {
     expect(slides[5]).toMatchObject({ kind: "example", steps: 4 }); // 3 steps + book note
   });
 
-  it("reveals practice answers one per click, counting only answered questions", () => {
-    const round = deckToSlides(DECK)[7];
-    expect(round).toMatchObject({ kind: "round", steps: 2 }); // one question is open
+  it("builds the instructions one per click, then the answers one per click", () => {
+    const round = deckToSlides(DECK)[7]!;
+    // 2 instructions (the first is up already) + 2 answered questions (one is open).
+    expect(round).toMatchObject({ kind: "round", steps: 3 });
+    expect(answerStep(round, 1)).toBe(0); // second instruction, no answers yet
+    expect(answerStep(round, 2)).toBe(1);
   });
 
   it("switches to the marking script once the exercise answers are shown", () => {
     const exercise = deckToSlides(DECK)[10]!;
+    expect(exercise.kind).toBe("exercise");
     expect(scriptAt(exercise, 0)[0]!.text).toBe("Work quietly.");
-    expect(scriptAt(exercise, 1)[0]!.text).toBe("Swap books and tick.");
+    expect(scriptAt(exercise, 1)[0]!.text).toBe("Work quietly."); // still on the instructions
+    expect(scriptAt(exercise, 2)[0]!.text).toBe("Swap books and tick.");
+  });
+
+  it("carries each slide's visual, and only draws a visual with something in it", () => {
+    const slides = deckToSlides(DECK);
+    expect(slides.find((s) => s.kind === "hook")!.visual.kind).toBe("objects");
+    expect(slides.find((s) => s.kind === "example")!.visual.kind).toBe("number_line");
+    expect(hasVisual(NO_VISUAL)).toBe(false);
+    expect(
+      hasVisual({
+        ...NO_VISUAL,
+        kind: "objects",
+        groups: [{ emoji: "🥭", count: 0, label: "" }],
+      }),
+    ).toBe(false);
+    expect(hasVisual({ ...NO_VISUAL, kind: "picture", emoji: "🌳" })).toBe(true);
   });
 
   it("skips the key-words slide when the lesson has no new words", () => {
-    const noWords = { ...DECK, i_do: { ...DECK.i_do, key_words: [], key_words_script: [] } };
+    const noWords = {
+      ...DECK,
+      i_do: { ...DECK.i_do, key_words: [], key_words_script: [] },
+    };
     expect(deckToSlides(noWords).map((s) => s.kind)).not.toContain("keyWords");
   });
 
   it("trims lists longer than a slide can hold", () => {
     const long = {
       ...DECK,
-      i_do: { ...DECK.i_do, teaching_points: Array.from({ length: 10 }, (_, i) => `Point ${i}`) },
+      i_do: {
+        ...DECK.i_do,
+        teaching_points: Array.from({ length: 10 }, (_, i) => `Point ${i}`),
+      },
     };
     const points = deckToSlides(long).find((s) => s.kind === "points");
     expect(points?.kind === "points" && points.points).toHaveLength(MAX_LIST_ITEMS);

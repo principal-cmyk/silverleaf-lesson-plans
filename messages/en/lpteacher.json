@@ -14,30 +14,41 @@
   },
   "lpSearch": {
     "title": "Lesson plans",
-    "subtitle": "Search and filter the lesson-plan catalogue.",
-    "placeholder": "Search lesson plans…",
+    "subtitle": "Choose your grade and subject, or search by topic.",
+    "placeholder": "Search by topic…",
     "ariaLabel": "Search lesson plans",
     "submit": "Search",
     "clearSearch": "Clear search",
     "clearAll": "Clear all",
     "sort": "Sort",
     "sortAriaLabel": "Sort order",
-    "relevance": "Relevance",
-    "browseOrder": "Browse order",
-    "relevanceEnabledHint": "Most relevant first",
-    "relevanceDisabledHint": "Type a search to sort by relevance",
+    "relevance": "Best match",
+    "browseOrder": "Course order",
+    "relevanceEnabledHint": "Closest matches to your search first",
     "resultsAriaLabel": "Search results",
     "facets": {
       "subject": "Subject",
       "grade": "Grade",
-      "term": "Term"
+      "term": "Term",
+      "week": "Week"
     },
-    "termLabel": "Term {value}"
+    "termLabel": "Term {value}",
+    "gradeLabel": "Grade {value}",
+    "weekLabel": "Week {value}",
+    "filtersButton": "{count, plural, =0 {Filters} other {Filters (#)}}",
+    "hideFilters": "Hide filters",
+    "removeFilter": "Remove filter: {label}",
+    "activeFilters": "Active filters"
   },
   "lpResults": {
     "count": "{count, plural, =0 {No plans} one {# plan} other {# plans}}",
     "emptyTitle": "No plans match",
-    "emptyHint": "Try fewer filters or a shorter search."
+    "emptyHint": "Try fewer filters or a shorter search.",
+    "showing": "Showing {from}–{to} of {total}",
+    "previous": "← Previous",
+    "next": "Next →",
+    "pageOf": "Page {page} of {pages}",
+    "paginationLabel": "Pages"
   },
   "lpPlan": {
     "objectives": "Objectives",
@@ -72,7 +83,8 @@
     "downloadPptx": "Download PowerPoint",
     "presenter": "Presenter view",
     "presenterTitle": "Presenter view — keep this window on your own screen",
-    "keys": "→ or space: next · ←: back · F: full screen · T: timer · P: pick a pupil",
+    "keys": "→ or space: next · ←: back · F: full screen · N: notes · T: timer · P: pick a pupil",
+    "toggleNotes": "Notes",
     "reveal": "Show next",
     "revealAnswer": "Show answer",
     "answerHidden": "Answer hidden — click or press → to show it",

@@ -25,8 +25,15 @@ import { useTranslations } from "next-intl";
 
 import { Link, useRouter } from "@/i18n/navigation";
 import type { SlideDeck } from "@/lib/slides/deckSchema";
-import type { ScriptLine } from "@/lib/slides/deckSchema";
-import { deckToSlides, scriptAt, type Slide, type TeacherExtras } from "@/lib/slides/deckToSlides";
+import type { ScriptLine, Visual } from "@/lib/slides/deckSchema";
+import {
+  answerStep,
+  deckToSlides,
+  hasVisual,
+  scriptAt,
+  type Slide,
+  type TeacherExtras,
+} from "@/lib/slides/deckToSlides";
 import { DECK_LABELS, type DeckLabels } from "@/lib/slides/labels";
 
 import styles from "./slides.module.css";
@@ -184,6 +191,8 @@ export default function SlidePlayer({
   posRef.current = pos;
   const [regenerating, setRegenerating] = useState(false);
   const [regenError, setRegenError] = useState<string | null>(null);
+  /** Single-screen view: the teacher's script under the slide (off the slide itself). */
+  const [notesOpen, setNotesOpen] = useState(false);
   const shellRef = useRef<HTMLDivElement>(null);
   const channel = useRef<BroadcastChannel | null>(null);
 
@@ -277,6 +286,10 @@ export default function SlidePlayer({
         case "P":
           if (pickerOn) picker.pick();
           break;
+        case "n":
+        case "N":
+          setNotesOpen((open) => !open);
+          break;
       }
     };
     window.addEventListener("keydown", onKey);
@@ -333,6 +346,14 @@ export default function SlidePlayer({
         </button>
         {view === "audience" ? (
           <>
+            <button
+              type="button"
+              className={styles.toolButton}
+              onClick={() => setNotesOpen((open) => !open)}
+              aria-pressed={notesOpen}
+            >
+              {t("toggleNotes")}
+            </button>
             <button type="button" className={styles.toolButton} onClick={openPresenter}>
               {t("presenter")}
             </button>
@@ -373,7 +394,11 @@ export default function SlidePlayer({
       progress={(pos.slide + 1) / slides.length}
       // Once the exercise / exit-ticket answers are up, the class is marking,
       // not working: the timer gives its room to the answers.
-      timer={minutes && !(pos.step >= 1 && (slide.kind === "exercise" || slide.kind === "exit")) ? timer : null}
+      timer={
+        minutes && !(answerStep(slide, pos.step) >= 1 && (slide.kind === "exercise" || slide.kind === "exit"))
+          ? timer
+          : null
+      }
       picker={pickerOn ? picker : null}
       onAdvance={view === "audience" ? next : undefined}
     />
@@ -408,6 +433,12 @@ export default function SlidePlayer({
       {toolbar}
       {notices}
       <div className={styles.viewport}>{stage}</div>
+      {notesOpen ? (
+        <aside className={styles.notesPanel}>
+          <ScriptList lines={scriptAt(slide, pos.step)} labels={labels} empty={t("noNotes")} />
+          <ExtrasPanel slide={slide} extras={extras} />
+        </aside>
+      ) : null}
       <p className={styles.keys}>{t("keys")}</p>
     </div>
   );
@@ -470,18 +501,14 @@ function ScriptList({
 function QuestionList({
   questions,
   shown,
-  className,
 }: {
   questions: Array<{ question: string; answer: string }>;
   shown: (i: number) => boolean;
-  className?: string;
 }) {
   return (
     // Three or more questions sit in two columns: with their answers shown, a
     // single column would push the last ones off the slide.
-    <ol
-      className={`${styles.questions} ${questions.length >= 3 ? styles.twoColList : ""} ${className ?? ""}`}
-    >
+    <ol className={`${styles.questions} ${questions.length >= 3 ? styles.twoColList : ""}`}>
       {questions.map((q, i) => (
         <li key={i}>
           {q.question}
@@ -489,6 +516,128 @@ function QuestionList({
         </li>
       ))}
     </ol>
+  );
+}
+
+/** The class's numbered steps, built up one per click. */
+function Instructions({ items, step }: { items: string[]; step: number }) {
+  if (items.length === 0) return null;
+  return (
+    <ol className={styles.instructions}>
+      {items.map((item, i) => (
+        <li key={i} className={i <= step ? styles.shown : styles.hidden}>
+          {item}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/* ── visuals: drawn by the app, so they work offline and need no props ── */
+
+/** Most objects drawn in one group (the model is asked for 20 at most). */
+const MAX_OBJECTS = 30;
+
+function VisualView({ visual }: { visual: Visual }) {
+  if (!hasVisual(visual)) return null;
+  return (
+    <figure className={styles.visual}>
+      {visual.kind === "objects" ? (
+        <div className={styles.groups}>
+          {visual.groups.map((g, i) => (
+            <div key={i} className={styles.group}>
+              <div className={styles.objects} aria-hidden="true">
+                {Array.from({ length: Math.min(g.count, MAX_OBJECTS) }, (_, j) => (
+                  <span key={j}>{g.emoji}</span>
+                ))}
+              </div>
+              {g.label ? <span className={styles.groupLabel}>{g.label}</span> : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {visual.kind === "number_line" ? <NumberLine line={visual.number_line} /> : null}
+      {visual.kind === "place_value" ? (
+        <table className={styles.placeValue}>
+          <thead>
+            <tr>
+              <th>H</th>
+              <th>T</th>
+              <th>O</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{visual.place_value.hundreds}</td>
+              <td>{visual.place_value.tens}</td>
+              <td>{visual.place_value.ones}</td>
+            </tr>
+          </tbody>
+        </table>
+      ) : null}
+      {visual.kind === "table" ? (
+        <table className={styles.dataTable}>
+          {visual.table.headers.length > 0 ? (
+            <thead>
+              <tr>
+                {visual.table.headers.map((h, i) => (
+                  <th key={i}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+          ) : null}
+          <tbody>
+            {visual.table.rows.slice(0, 8).map((row, i) => (
+              <tr key={i}>
+                {row.map((cell, j) => (
+                  <td key={j}>{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : null}
+      {visual.kind === "word_cards" ? (
+        <div className={styles.cards}>
+          {visual.cards.slice(0, 6).map((c, i) => (
+            <div key={i} className={styles.card}>
+              {c.emoji ? <span className={styles.cardEmoji}>{c.emoji}</span> : null}
+              <span>{c.text}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {visual.kind === "picture" ? (
+        <div className={styles.picture} aria-hidden="true">
+          {visual.emoji}
+        </div>
+      ) : null}
+      {visual.caption.trim() ? <figcaption>{visual.caption}</figcaption> : null}
+    </figure>
+  );
+}
+
+/** A number line from `from` to `to`, ticks every `step`, `highlight` circled. */
+function NumberLine({ line }: { line: Visual["number_line"] }) {
+  const count = Math.min(40, Math.floor((line.to - line.from) / line.step));
+  const ticks = Array.from({ length: count + 1 }, (_, i) => +(line.from + i * line.step).toFixed(4));
+  const x = (i: number) => 4 + (i / Math.max(1, count)) * 92;
+  return (
+    <svg className={styles.numberLine} viewBox="0 0 100 22" role="img" aria-label={`${line.from}–${line.to}`}>
+      <line x1="2" y1="10" x2="98" y2="10" />
+      {ticks.map((n, i) => {
+        const on = line.highlight.includes(n);
+        return (
+          <g key={i}>
+            {on ? <circle cx={x(i)} cy="10" r="2.6" /> : null}
+            <line x1={x(i)} y1="7.5" x2={x(i)} y2="12.5" />
+            <text x={x(i)} y="19" className={on ? styles.nlOn : undefined}>
+              {n}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -519,13 +668,13 @@ function SlideStage({
   }
 
   const heading = slide.kind === "checkpoint" ? labels.checkpoint : slide.heading;
-  const script = scriptAt(slide, step);
-  // Nothing on a slide may be cut off: the content and the teacher strip each
-  // shrink their type until they fit (re-checked on every reveal and resize).
+  /** Clicks past the instructions: 1+ means the answers are showing. */
+  const answers = answerStep(slide, step);
+  const visual = hasVisual(slide.visual) ? slide.visual : null;
+  // Nothing on a slide may be cut off: the content shrinks its type until it
+  // fits (re-checked on every click and resize).
   const contentRef = useRef<HTMLDivElement>(null);
-  const stripRef = useRef<HTMLDivElement>(null);
   useFitText(contentRef, `${slide.kind}:${slide.heading}:${step}:${slide.time?.start}`);
-  useFitText(stripRef, script.map((l) => l.text).join("|"));
 
   return (
     <div className={`${styles.stage} ${styles[`kind_${slide.kind}`] ?? ""}`} onClick={handleClick}>
@@ -540,6 +689,7 @@ function SlideStage({
       <div className={styles.content} ref={contentRef}>
         {slide.kind === "title" ? (
           <div className={styles.titleBlock}>
+            {slide.emoji ? <div className={styles.titleEmoji}>{slide.emoji}</div> : null}
             <h1>{slide.heading}</h1>
             {slide.subheading ? <p className={styles.subheading}>{slide.subheading}</p> : null}
             <p className={styles.titleTime}>⏱ {labels.duration(slide.lessonMinutes)}</p>
@@ -557,158 +707,169 @@ function SlideStage({
           </h1>
         )}
 
-        {slide.kind === "getReady" ? (
-          <div className={styles.twoCol}>
-            <div>
-              <p className={styles.label}>{labels.youNeed}</p>
-              <ul className={styles.ticks}>
-                {slide.materials.map((m, i) => (
-                  <li key={i}>{m}</li>
-                ))}
-              </ul>
-            </div>
-            <div className={styles.bookBox}>
-              <p className={styles.bookLabel}>✏ {labels.copyIntoBook}</p>
-              <p className={styles.bookDate}>{labels.date}</p>
-              <p className={styles.bookTitle}>{slide.bookTitle}</p>
-              <p>{slide.bookGoal}</p>
-            </div>
-          </div>
-        ) : null}
-
-        {slide.kind === "hook" ? (
-          <>
-            <p className={styles.prompt}>{slide.prompt}</p>
-            <Frame text={slide.sentenceFrame} />
-            {step >= 1 ? (
-              <ul className={styles.answers}>
-                {slide.answers.map((a, i) => (
-                  <li key={i}>{a}</li>
-                ))}
-              </ul>
-            ) : null}
-          </>
-        ) : null}
-
-        {slide.kind === "keyWords" ? (
-          <dl className={styles.words}>
-            {slide.words.map((w, i) => (
-              <div key={i}>
-                <dt>{w.word}</dt>
-                <dd>{w.meaning}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : null}
-
-        {slide.kind === "points" ? (
-          <ul className={styles.ticks}>
-            {slide.points.map((point, i) => (
-              <li key={i} className={i <= step ? styles.shown : styles.hidden}>
-                {point}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        {slide.kind === "example" ? (
-          <>
-            <p className={styles.problem}>{slide.problem}</p>
-            <ol className={styles.work}>
-              {slide.workSteps.map((ws, i) => (
-                <li key={i} className={i < step ? styles.shown : styles.hidden}>
-                  {ws}
-                </li>
-              ))}
-            </ol>
-            {slide.bookNote.trim() && step > slide.workSteps.length ? (
-              <div className={`${styles.bookBox} ${styles.shown}`}>
-                <p className={styles.bookLabel}>✏ {labels.copyIntoBook}</p>
-                <p>{slide.bookNote}</p>
-              </div>
-            ) : null}
-          </>
-        ) : null}
-
-        {slide.kind === "checkpoint" ? (
-          <>
-            <p className={styles.question}>{slide.question}</p>
-            {slide.answer.trim() ? (
-              step >= 1 ? (
-                <p className={styles.answer}>
-                  <span>{labels.answer}</span>
-                  {slide.answer}
-                </p>
-              ) : (
-                <p className={styles.answerHidden}>{t("answerHidden")}</p>
-              )
-            ) : null}
-          </>
-        ) : null}
-
-        {slide.kind === "round" ? (
-          <>
-            <p className={styles.instruction}>{slide.instruction}</p>
-            <QuestionList
-              questions={slide.questions}
-              // Answers come one per click, in order among the answered ones.
-              shown={(i) =>
-                slide.questions.slice(0, i + 1).filter((q) => q.answer.trim()).length <= step
-              }
-            />
-            <Frame text={slide.sentenceFrame} />
-          </>
-        ) : null}
-
-        {slide.kind === "exercise" ? (
-          <>
-            <p className={styles.instruction}>✏ {slide.instruction}</p>
-            <QuestionList questions={slide.questions} shown={() => step >= 1} />
-            <p className={styles.challenge}>
-              <strong>⭐ {labels.challenge}:</strong> {slide.challenge.question}
-              {step >= 1 && slide.challenge.answer.trim() ? (
-                <span className={styles.qAnswer}>→ {slide.challenge.answer}</span>
-              ) : null}
-            </p>
-          </>
-        ) : null}
-
-        {slide.kind === "exit" ? (
-          <>
-            <p className={styles.instruction}>✏ {slide.instruction}</p>
-            <QuestionList questions={slide.questions} shown={() => step >= 1} />
-          </>
-        ) : null}
-
-        {slide.kind === "close" ? (
-          <div className={styles.twoCol}>
-            <div>
-              <p className={styles.label}>{labels.recap}</p>
-              <ul className={styles.ticks}>
-                {slide.recap.map((r, i) => (
-                  <li key={i}>{r}</li>
-                ))}
-              </ul>
-              {slide.homework.trim() ? (
-                <div className={styles.bookBox}>
-                  <p className={styles.bookLabel}>🏠 {labels.homework}</p>
-                  <p>{slide.homework}</p>
+        {/* Slides with a visual put it beside their text. */}
+        <div className={visual ? styles.withVisual : undefined}>
+          <div className={styles.mainCol}>
+            {slide.kind === "getReady" ? (
+              <>
+                <Instructions items={slide.instructions} step={step} />
+                <div className={styles.twoCol}>
+                  <div>
+                    <p className={styles.label}>{labels.youNeed}</p>
+                    <ul className={styles.ticks}>
+                      {slide.materials.map((m, i) => (
+                        <li key={i}>{m}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className={styles.bookBox}>
+                    <p className={styles.bookLabel}>✏ {labels.copyIntoBook}</p>
+                    <p className={styles.bookDate}>{labels.date}</p>
+                    <p className={styles.bookTitle}>{slide.bookTitle}</p>
+                    <p>{slide.bookGoal}</p>
+                  </div>
                 </div>
-              ) : null}
-            </div>
-            <div>
-              <p className={styles.label}>{labels.thumbs}</p>
-              <ul className={styles.selfCheck}>
-                {slide.selfCheck.map((sc, i) => (
-                  <li key={i}>
-                    <span aria-hidden="true">👍 👌 👎</span>
-                    {sc}
+              </>
+            ) : null}
+
+            {slide.kind === "hook" ? (
+              <>
+                <Instructions items={slide.instructions} step={step} />
+                <Frame text={slide.sentenceFrame} />
+                {answers >= 1 ? (
+                  <ul className={styles.answers}>
+                    {slide.answers.map((a, i) => (
+                      <li key={i}>{a}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            ) : null}
+
+            {slide.kind === "keyWords" ? (
+              <div className={styles.cards}>
+                {slide.words.map((w, i) => (
+                  <div key={i} className={`${styles.card} ${i <= step ? styles.shown : styles.hidden}`}>
+                    {w.emoji ? <span className={styles.cardEmoji}>{w.emoji}</span> : null}
+                    <strong>{w.word}</strong>
+                    <span className={styles.cardMeaning}>{w.meaning}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {slide.kind === "points" ? (
+              <ul className={styles.ticks}>
+                {slide.points.map((point, i) => (
+                  <li key={i} className={i <= step ? styles.shown : styles.hidden}>
+                    {point}
                   </li>
                 ))}
               </ul>
-            </div>
+            ) : null}
+
+            {slide.kind === "example" ? (
+              <>
+                <p className={styles.problem}>{slide.problem}</p>
+                <ol className={styles.work}>
+                  {slide.workSteps.map((ws, i) => (
+                    <li key={i} className={i < step ? styles.shown : styles.hidden}>
+                      {ws}
+                    </li>
+                  ))}
+                </ol>
+                {slide.bookNote.trim() && step > slide.workSteps.length ? (
+                  <div className={`${styles.bookBox} ${styles.shown}`}>
+                    <p className={styles.bookLabel}>✏ {labels.copyIntoBook}</p>
+                    <p>{slide.bookNote}</p>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+
+            {slide.kind === "checkpoint" ? (
+              <>
+                <p className={styles.question}>{slide.question}</p>
+                <Instructions items={slide.instructions} step={step} />
+                {slide.answer.trim() ? (
+                  answers >= 1 ? (
+                    <p className={styles.answer}>
+                      <span>{labels.answer}</span>
+                      {slide.answer}
+                    </p>
+                  ) : (
+                    <p className={styles.answerHidden}>{t("answerHidden")}</p>
+                  )
+                ) : null}
+              </>
+            ) : null}
+
+            {slide.kind === "round" ? (
+              <>
+                <Instructions items={slide.instructions} step={step} />
+                <QuestionList
+                  questions={slide.questions}
+                  // Answers come one per click, in order among the answered ones.
+                  shown={(i) =>
+                    slide.questions.slice(0, i + 1).filter((q) => q.answer.trim()).length <= answers
+                  }
+                />
+                <Frame text={slide.sentenceFrame} />
+              </>
+            ) : null}
+
+            {slide.kind === "exercise" ? (
+              <>
+                <Instructions items={slide.instructions} step={step} />
+                <QuestionList questions={slide.questions} shown={() => answers >= 1} />
+                <p className={styles.challenge}>
+                  <strong>⭐ {labels.challenge}:</strong> {slide.challenge.question}
+                  {answers >= 1 && slide.challenge.answer.trim() ? (
+                    <span className={styles.qAnswer}>→ {slide.challenge.answer}</span>
+                  ) : null}
+                </p>
+              </>
+            ) : null}
+
+            {slide.kind === "exit" ? (
+              <>
+                <Instructions items={slide.instructions} step={step} />
+                <QuestionList questions={slide.questions} shown={() => answers >= 1} />
+              </>
+            ) : null}
+
+            {slide.kind === "close" ? (
+              <div className={styles.twoCol}>
+                <div>
+                  <p className={styles.label}>{labels.recap}</p>
+                  <ul className={styles.ticks}>
+                    {slide.recap.map((r, i) => (
+                      <li key={i}>{r}</li>
+                    ))}
+                  </ul>
+                  {slide.homework.trim() ? (
+                    <div className={styles.bookBox}>
+                      <p className={styles.bookLabel}>🏠 {labels.homework}</p>
+                      <p>{slide.homework}</p>
+                    </div>
+                  ) : null}
+                </div>
+                <div>
+                  <p className={styles.label}>{labels.thumbs}</p>
+                  <ul className={styles.selfCheck}>
+                    {slide.selfCheck.map((sc, i) => (
+                      <li key={i}>
+                        <span aria-hidden="true">👍 👌 👎</span>
+                        {sc}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : null}
           </div>
-        ) : null}
+          {visual ? <VisualView visual={visual} /> : null}
+        </div>
       </div>
 
       {timer || picker ? (
@@ -749,18 +910,6 @@ function SlideStage({
               {picker.wrapped ? <span className={styles.pickNote}>{t("everyonePicked")}</span> : null}
             </div>
           ) : null}
-        </div>
-      ) : null}
-
-      {script.length > 0 ? (
-        <div className={styles.teacherStrip} ref={stripRef}>
-          <span className={styles.teacherLabel}>🗣 {labels.teacher}</span>
-          <ScriptList
-            lines={script}
-            labels={labels}
-            // A long script flows into two columns rather than eating the slide.
-            className={`${styles.stripList} ${script.length > 5 ? styles.stripTwoCol : ""}`}
-          />
         </div>
       ) : null}
 

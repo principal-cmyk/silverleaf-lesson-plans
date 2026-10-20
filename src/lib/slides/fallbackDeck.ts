@@ -4,12 +4,13 @@
  * Used when AI generation is unavailable (no OPENROUTER_API_KEY) or fails —
  * a teacher about to stand in front of a class always gets slides. The plan's
  * own text is cut into slide-sized pieces and laid on the standard lesson
- * timeline; nothing is invented, so there are no worked answers to reveal and
- * the teacher's script is the plan's own wording. The AI deck is the real one.
+ * timeline; nothing is invented, so there are no worked answers to reveal, no
+ * visuals, and the instructions and teacher's script are the plan's own
+ * sentences. The AI deck is the real one.
  */
 import type { StructuredLessonPlan } from "@/lib/ai/lessonPlan/structuredSchema";
 
-import type { QuestionAnswer, ScriptLine, SlideDeck } from "./deckSchema";
+import { NO_VISUAL, type QuestionAnswer, type ScriptLine, type SlideDeck } from "./deckSchema";
 import type { DeckLanguage } from "./labels";
 
 /** Lesson length when the plan does not say. */
@@ -40,7 +41,10 @@ export function defaultTimings(
   return Object.fromEntries(
     SHARES.map(([key], i) => [
       key,
-      { start_minute: starts[i]!, end_minute: Math.max(starts[i]! + 1, starts[i + 1] ?? minutes) },
+      {
+        start_minute: starts[i]!,
+        end_minute: Math.max(starts[i]! + 1, starts[i + 1] ?? minutes),
+      },
     ]),
   ) as Record<PhaseKey, { start_minute: number; end_minute: number }>;
 }
@@ -59,6 +63,11 @@ const HEADINGS = {
     exitInstruction: "Answer in your exercise book.",
     materials: ["Exercise book", "Pencil"],
     goal: "Today I will",
+    getReadySteps: [
+      "Take out your exercise book and pencil.",
+      "Write the date.",
+      "Copy the title and today's goal.",
+    ],
   },
   sw: {
     getReady: "Jiandae",
@@ -73,6 +82,7 @@ const HEADINGS = {
     exitInstruction: "Jibu kwenye daftari lako.",
     materials: ["Daftari", "Penseli"],
     goal: "Leo nitaweza",
+    getReadySteps: ["Toa daftari lako na penseli.", "Andika tarehe.", "Nakili kichwa na lengo la leo."],
   },
 } as const;
 
@@ -120,7 +130,10 @@ function pieces(text: string): string[] {
 const say = (text: string): ScriptLine[] =>
   pieces(text).map((t) => ({ kind: "say" as const, text: t }));
 
-const open = (question: string): QuestionAnswer => ({ question: question.trim() || "—", answer: "" });
+const open = (question: string): QuestionAnswer => ({
+  question: question.trim() || "—",
+  answer: "",
+});
 
 /** The plan as a lesson deck, without a model call. */
 export function fallbackDeck(
@@ -138,6 +151,8 @@ export function fallbackDeck(
   const checkpoint = (question: string) => ({
     question: question.trim() || "—",
     answer: "",
+    instructions: [],
+    visual: NO_VISUAL,
     script: [{ kind: "ask" as const, text: question.trim() || "—" }],
   });
   const weDoMinutes = t.we_do.end_minute - t.we_do.start_minute;
@@ -149,11 +164,13 @@ export function fallbackDeck(
     title: {
       heading: id.title || id.specific_competence || "—",
       subheading,
+      emoji: "",
       script: say(id.specific_competence || id.title || "—"),
     },
     get_ready: {
       ...t.get_ready,
       heading: h.getReady,
+      instructions: [...h.getReadySteps],
       materials: [...h.materials, ...plan.materials_and_prep].slice(0, 6),
       book_title: id.title || id.specific_competence || "—",
       book_goal: `${h.goal}: ${plan.success_criteria[0] ?? ""}`.trim(),
@@ -162,7 +179,8 @@ export function fallbackDeck(
     hook: {
       ...t.hook,
       heading: h.hook,
-      prompt: seq.introduction_hook.text,
+      instructions: pieces(seq.introduction_hook.text),
+      visual: NO_VISUAL,
       sentence_frame: seq.introduction_hook.sentence_frame,
       expected_answers: [seq.introduction_hook.checkpoint],
       script: say(seq.introduction_hook.text),
@@ -173,10 +191,12 @@ export function fallbackDeck(
       key_words: [],
       key_words_script: [],
       teaching_points: plan.knows,
+      teaching_points_visual: NO_VISUAL,
       teaching_points_script: say(seq.i_do.text),
       worked_examples: [
         {
           problem: pieces(seq.i_do.text)[0]!,
+          visual: NO_VISUAL,
           steps: pieces(seq.i_do.text).slice(1).length > 0 ? pieces(seq.i_do.text).slice(1) : ["—"],
           book_note: seq.i_do.sentence_frame,
           script: say(seq.i_do.text),
@@ -190,7 +210,8 @@ export function fallbackDeck(
       sentence_frame: seq.we_do.sentence_frame,
       rounds: rounds.map((text, i) => ({
         title: `${h.round} ${i + 1}`,
-        instruction: text,
+        instructions: [text],
+        visual: NO_VISUAL,
         minutes: Math.max(1, Math.floor(weDoMinutes / rounds.length)),
         questions: [open(i === 0 ? seq.we_do.checkpoint : text)],
         script: say(text),
@@ -200,7 +221,7 @@ export function fallbackDeck(
     you_do: {
       ...t.you_do,
       heading: h.youDo,
-      instruction: h.youDoInstruction,
+      instructions: [h.youDoInstruction],
       questions: pieces(seq.you_do.text).map(open),
       challenge: open(plan.differentiation.challenge),
       script: say(seq.you_do.text),
@@ -209,7 +230,7 @@ export function fallbackDeck(
     exit_ticket: {
       ...t.exit_ticket,
       heading: h.exit,
-      instruction: h.exitInstruction,
+      instructions: [h.exitInstruction],
       questions: pieces(plan.conclusion_and_exit_ticket.exit_ticket).map(open),
       script: say(plan.assessment_method),
     },

@@ -14,30 +14,41 @@
   },
   "lpSearch": {
     "title": "Mipango ya somo",
-    "subtitle": "Tafuta na uchuje katalogi ya mipango ya somo.",
-    "placeholder": "Tafuta mipango ya somo…",
+    "subtitle": "Chagua darasa na somo lako, au tafuta kwa mada.",
+    "placeholder": "Tafuta kwa mada…",
     "ariaLabel": "Tafuta mipango ya somo",
     "submit": "Tafuta",
     "clearSearch": "Futa utafutaji",
     "clearAll": "Futa vyote",
     "sort": "Panga",
     "sortAriaLabel": "Mpangilio",
-    "relevance": "Uhusiano",
-    "browseOrder": "Mpangilio wa kuvinjari",
-    "relevanceEnabledHint": "Yenye uhusiano zaidi kwanza",
-    "relevanceDisabledHint": "Andika utafutaji ili kupanga kwa uhusiano",
+    "relevance": "Zinazolingana zaidi",
+    "browseOrder": "Mfuatano wa masomo",
+    "relevanceEnabledHint": "Zinazolingana zaidi na utafutaji wako kwanza",
     "resultsAriaLabel": "Matokeo ya utafutaji",
     "facets": {
       "subject": "Somo",
       "grade": "Darasa",
-      "term": "Muhula"
+      "term": "Muhula",
+      "week": "Wiki"
     },
-    "termLabel": "Muhula {value}"
+    "termLabel": "Muhula {value}",
+    "gradeLabel": "Darasa {value}",
+    "weekLabel": "Wiki {value}",
+    "filtersButton": "{count, plural, =0 {Vichujio} other {Vichujio (#)}}",
+    "hideFilters": "Ficha vichujio",
+    "removeFilter": "Ondoa kichujio: {label}",
+    "activeFilters": "Vichujio vilivyochaguliwa"
   },
   "lpResults": {
     "count": "{count, plural, =0 {Hakuna mipango} one {mpango #} other {mipango #}}",
     "emptyTitle": "Hakuna mipango inayolingana",
-    "emptyHint": "Jaribu vichujio vichache au utafutaji mfupi."
+    "emptyHint": "Jaribu vichujio vichache au utafutaji mfupi.",
+    "showing": "Inaonyesha {from}–{to} kati ya {total}",
+    "previous": "← Iliyotangulia",
+    "next": "Inayofuata →",
+    "pageOf": "Ukurasa {page} kati ya {pages}",
+    "paginationLabel": "Kurasa"
   },
   "lpPlan": {
     "objectives": "Malengo",
@@ -72,7 +83,8 @@
     "downloadPptx": "Pakua PowerPoint",
     "presenter": "Mwonekano wa mwalimu",
     "presenterTitle": "Mwonekano wa mwalimu — weka dirisha hili kwenye skrini yako",
-    "keys": "→ au nafasi: mbele · ←: nyuma · F: skrini nzima · T: saa · P: chagua mwanafunzi",
+    "keys": "→ au nafasi: mbele · ←: nyuma · F: skrini nzima · N: maelezo · T: saa · P: chagua mwanafunzi",
+    "toggleNotes": "Maelezo",
     "reveal": "Onyesha inayofuata",
     "revealAnswer": "Onyesha jibu",
     "answerHidden": "Jibu limefichwa — bofya au bonyeza → kulionyesha",

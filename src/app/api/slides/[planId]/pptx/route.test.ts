@@ -75,7 +75,7 @@ async function titleSlide(res: Response): Promise<string> {
 describe("GET /api/slides/[planId]/pptx", () => {
   it("serves the saved AI deck as a named PowerPoint attachment", async () => {
     const plan = await makePlan();
-    const deck = { ...fallbackDeck(VALID_PLAN), title: { heading: "AI TITLE", subheading: "", script: [{ kind: "say" as const, text: "Hi." }] } };
+    const deck = { ...fallbackDeck(VALID_PLAN), title: { heading: "AI TITLE", subheading: "", emoji: "", script: [{ kind: "say" as const, text: "Hi." }] } };
     await saveDeck({ planId: plan.id, deck, contentJson: plan.contentJson, modelId: "m", generatedBy: null });
 
     const res = await get(plan.id);
@@ -94,7 +94,7 @@ describe("GET /api/slides/[planId]/pptx", () => {
     expect(none.headers.get("x-slides-basic")).toBe("1");
     expect(await titleSlide(none)).toContain(VALID_PLAN.identifier.title);
 
-    const stale = { ...fallbackDeck(VALID_PLAN), title: { heading: "OLD", subheading: "", script: [{ kind: "say" as const, text: "Hi." }] } };
+    const stale = { ...fallbackDeck(VALID_PLAN), title: { heading: "OLD", subheading: "", emoji: "", script: [{ kind: "say" as const, text: "Hi." }] } };
     await saveDeck({
       planId: plan.id,
       deck: stale,

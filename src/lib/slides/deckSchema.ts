@@ -1,5 +1,6 @@
 /**
- * Slide deck — the pupil-facing deck a teacher drives a whole lesson with.
+ * Slide deck — the pupil-facing, plug-and-play deck a teacher drives a whole
+ * lesson with.
  *
  * A FIXED sequence of lesson phases, each with its minute range, so the model
  * fills every part of the lesson in order and every deck renders alike:
@@ -10,12 +11,15 @@
  *
  * (✔ = a checkpoint question with its expected answer.)
  *
- * Two audiences on every slide:
- *  - pupils: the instructions, what to copy into their books, the questions —
- *    each question carries its answer, revealed by the teacher;
- *  - the teacher: `script`, the lines to say / ask / expect / do while that
- *    slide is up, shown in a strip on the slide itself (a teacher with one
- *    screen still has it) and in the presenter view and speaker notes.
+ * Two audiences:
+ *  - pupils see each slide's `instructions` — numbered steps written to the
+ *    class, revealed one per click — with the questions, what to copy into
+ *    their books, and a `visual` (objects to count, a number line, a place-
+ *    value chart, a table, word cards or a picture) so the teacher needs no
+ *    props; every question carries its answer, revealed last;
+ *  - the teacher gets `script` — every line to say / ask / expect / do — in
+ *    the presenter view and the PowerPoint speaker notes, never on the
+ *    projected slide.
  *
  * Arrays only set a minimum: provider structured-output modes differ in how
  * they treat `maxItems`, so the player trims long lists instead.
@@ -32,8 +36,11 @@ const scriptLine = z.object({
   text,
 });
 
-/** What the teacher says/asks/expects/does while a slide is up. */
+/** Everything the teacher says/asks/expects/does while a slide is up. */
 const script = z.array(scriptLine).min(1);
+
+/** Numbered steps written to the class, revealed one per click. */
+const instructions = z.array(text);
 
 /** A question pupils answer, with the answer the teacher reveals ("" = open). */
 const qa = z.object({ question: text, answer: z.string() });
@@ -44,18 +51,82 @@ const span = {
   end_minute: z.number().int().min(1),
 };
 
+export const VISUAL_KINDS = [
+  "none",
+  "objects",
+  "number_line",
+  "place_value",
+  "table",
+  "word_cards",
+  "picture",
+] as const;
+
+/**
+ * A picture the app draws itself, so it works offline and looks the same in
+ * the player and the PowerPoint. ONE flat shape: `kind` says which fields are
+ * used, the rest stay empty — a flat object is what models fill most
+ * reliably (a union of shapes is not).
+ */
+const visual = z.object({
+  kind: z.enum(VISUAL_KINDS),
+  /** A short line under the visual ("" for none). */
+  caption: z.string(),
+  /** objects: groups of one emoji, repeated `count` times, with a label. */
+  groups: z.array(
+    z.object({
+      emoji: text,
+      count: z.number().int().min(0),
+      label: z.string(),
+    }),
+  ),
+  /** number_line: from…to in `step`s, with `highlight` marked. */
+  number_line: z.object({
+    from: z.number(),
+    to: z.number(),
+    step: z.number(),
+    highlight: z.array(z.number()),
+  }),
+  /** place_value: the digits in each column. */
+  place_value: z.object({
+    hundreds: z.number().int().min(0),
+    tens: z.number().int().min(0),
+    ones: z.number().int().min(0),
+  }),
+  /** table: a header row and body rows. */
+  table: z.object({
+    headers: z.array(z.string()),
+    rows: z.array(z.array(z.string())),
+  }),
+  /** word_cards: big cards, each a word with an emoji ("" for none). */
+  cards: z.array(z.object({ text, emoji: z.string() })),
+  /** picture: one large emoji. */
+  emoji: z.string(),
+});
+
 /** A check for understanding between phases. */
-const checkpoint = z.object({ question: text, answer: z.string(), script });
+const checkpoint = z.object({
+  question: text,
+  answer: z.string(),
+  instructions,
+  visual,
+  script,
+});
 
 export const slideDeckSchema = z.object({
   /** "en" or "sw": the language every pupil-facing line is written in. */
   language: z.enum(["en", "sw"]),
   /** Length of the lesson the minute ranges add up to. */
   lesson_minutes: z.number().int().min(10),
-  title: z.object({ heading: text, subheading: z.string(), script }),
+  title: z.object({
+    heading: text,
+    subheading: z.string(),
+    emoji: z.string(),
+    script,
+  }),
   get_ready: z.object({
     ...span,
     heading: text,
+    instructions,
     /** What pupils need on their desks. */
     materials: z.array(text).min(1),
     /** The lesson title pupils copy into their books. */
@@ -67,25 +138,28 @@ export const slideDeckSchema = z.object({
   hook: z.object({
     ...span,
     heading: text,
-    prompt: text,
+    instructions,
+    visual,
     sentence_frame: z.string(),
-    /** Answers the teacher hopes to hear, revealed after pupils respond. */
+    /** Answers the teacher hopes to hear, revealed after the instructions. */
     expected_answers: z.array(text).min(1),
     script,
   }),
   i_do: z.object({
     ...span,
     heading: text,
-    /** New words and their meanings (may be empty). */
-    key_words: z.array(z.object({ word: text, meaning: text })),
+    /** New words, each with a child-friendly meaning and an emoji (may be empty). */
+    key_words: z.array(z.object({ word: text, meaning: text, emoji: z.string() })),
     key_words_script: z.array(scriptLine),
     /** The ideas taught, revealed one at a time. */
     teaching_points: z.array(text).min(1),
+    teaching_points_visual: visual,
     teaching_points_script: script,
     worked_examples: z
       .array(
         z.object({
           problem: text,
+          visual,
           /** The working, step by step, as written on the board. */
           steps: z.array(text).min(1),
           /** What pupils copy into their books for this example. */
@@ -104,9 +178,10 @@ export const slideDeckSchema = z.object({
       .array(
         z.object({
           title: text,
-          /** What the class does in this round (whiteboards, pairs, books…). */
-          instruction: text,
+          /** How the class works this round (slates, pairs, chorus…), step by step. */
+          instructions: z.array(text).min(1),
           minutes: z.number().int().min(1),
+          visual,
           questions: z.array(qa).min(1),
           script,
         }),
@@ -117,8 +192,8 @@ export const slideDeckSchema = z.object({
   you_do: z.object({
     ...span,
     heading: text,
-    /** "In your exercise book, answer…" */
-    instruction: text,
+    /** "Open your exercise book…", "Write the date…", "Answer Q1–Q5…" */
+    instructions: z.array(text).min(1),
     questions: z.array(qa).min(1),
     challenge: qa,
     script,
@@ -128,7 +203,7 @@ export const slideDeckSchema = z.object({
   exit_ticket: z.object({
     ...span,
     heading: text,
-    instruction: text,
+    instructions: z.array(text).min(1),
     questions: z.array(qa).min(1),
     script,
   }),
@@ -147,3 +222,16 @@ export const slideDeckSchema = z.object({
 export type SlideDeck = z.infer<typeof slideDeckSchema>;
 export type ScriptLine = z.infer<typeof scriptLine>;
 export type QuestionAnswer = z.infer<typeof qa>;
+export type Visual = z.infer<typeof visual>;
+
+/** A visual that draws nothing — for slides without one and for the basic deck. */
+export const NO_VISUAL: Visual = {
+  kind: "none",
+  caption: "",
+  groups: [],
+  number_line: { from: 0, to: 0, step: 1, highlight: [] },
+  place_value: { hundreds: 0, tens: 0, ones: 0 },
+  table: { headers: [], rows: [] },
+  cards: [],
+  emoji: "",
+};

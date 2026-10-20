@@ -6,26 +6,27 @@ import "server-only";
  * on content, order and wording.
  *
  * Every slide keeps the player's layout: the phase and its minutes along the
- * top, the pupil-facing content, and the teacher strip (Say / Ask / Expect /
- * Do) along the bottom. The script also goes into the speaker notes, with the
- * plan's misconceptions, things to watch for and support/challenge where they
- * apply.
+ * top, the class's numbered instructions, the pupil-facing content and its
+ * visual (drawn with shapes and emoji, so it needs no image files). The
+ * teacher's script (Say / Ask / Expect / Do) is in the speaker notes only,
+ * with the plan's misconceptions, things to watch for and support/challenge
+ * where they apply.
  *
- * A .pptx cannot reveal on click, so each reveal becomes a following slide:
- * questions, then the same questions with their answers (the exercise's
- * answer slide carries the marking script). Timed activities show their time.
+ * A .pptx cannot reveal on click, so all of a slide's instructions show at
+ * once and each answer reveal becomes a following slide: questions, then the
+ * same questions with their answers (the exercise's answer slide carries the
+ * marking script). Timed activities show their time.
  *
  * Calibri, not the brand font: a school laptop opening the file may not have
  * Montserrat, and PowerPoint's substitute is unpredictable.
  */
 import PptxGenJS from "pptxgenjs";
 
-import type { QuestionAnswer, ScriptLine, SlideDeck } from "./deckSchema";
-import { deckToSlides, type Slide, type TeacherExtras } from "./deckToSlides";
+import type { QuestionAnswer, ScriptLine, SlideDeck, Visual } from "./deckSchema";
+import { deckToSlides, hasVisual, instructionClicks, type Slide, type TeacherExtras } from "./deckToSlides";
 import { DECK_LABELS, type DeckLabels, type DeckLanguage } from "./labels";
 
 const NAVY = "002368";
-const STRIP = "0F2A5C";
 const GOLD = "FFC952";
 const GOLD15 = "FFF7E5";
 const LIGHT = "80BFEC";
@@ -41,23 +42,15 @@ const FONT = "Calibri";
 const W = 13.333;
 const MARGIN = 0.6;
 const BODY_W = W - 2 * MARGIN;
-/** Content area between the heading and the teacher strip. */
+/** Content area between the heading and the footer. */
 const BODY_Y = 1.45;
-const BODY_H = 3.85;
-const STRIP_Y = 5.45;
-const STRIP_H = 1.6;
-
-/**
- * Cue colours on the teacher strip. The cue word itself is coloured (not a
- * highlight behind it): many PowerPoint versions drop text highlighting, which
- * would leave a navy cue invisible on the navy strip.
- */
-const CUE: Record<ScriptLine["kind"], string> = {
-  say: GOLD,
-  ask: LIGHT,
-  expect: "9EE6B4",
-  do: "C9D3E3",
-};
+const BODY_H = 5.45;
+/** With a visual, the text takes the left column and the visual the right. */
+const TEXT_W = 6.9;
+const VISUAL_X = MARGIN + TEXT_W + 0.35;
+const VISUAL_W = BODY_W - TEXT_W - 0.35;
+const PANEL = "F5F8FC";
+const PANEL_LINE = "E3E8F0";
 
 /** Hanging indent (points) between a list marker and its text. */
 const INDENT = 30;
@@ -154,16 +147,24 @@ function heading(s: PptxSlide, text: string, chip?: string) {
 function body(
   s: PptxSlide,
   text: string,
-  opts: { y?: number; h?: number; size?: number; bold?: boolean } = {},
+  opts: {
+    x?: number;
+    y?: number;
+    w?: number;
+    h?: number;
+    size?: number;
+    bold?: boolean;
+  } = {},
 ) {
   const h = opts.h ?? BODY_H;
+  const w = opts.w ?? BODY_W;
   s.addText(text, {
-    x: MARGIN,
+    x: opts.x ?? MARGIN,
     y: opts.y ?? BODY_Y,
-    w: BODY_W,
+    w,
     h,
     fontFace: FONT,
-    fontSize: fitFontSize([text], BODY_W - 0.2, h - 0.1, opts.size ?? bodySize(text.length), 12),
+    fontSize: fitFontSize([text], w - 0.2, h - 0.1, opts.size ?? bodySize(text.length), 12),
     bold: opts.bold,
     color: opts.bold ? NAVY : INK,
     valign: "top",
@@ -196,7 +197,12 @@ function list(
         { text: item.text, options: { bullet } },
         {
           text: `→ ${item.answer}`,
-          options: { softBreakBefore: true, breakLine: true, bold: true, color: GREEN },
+          options: {
+            softBreakBefore: true,
+            breakLine: true,
+            bold: true,
+            color: GREEN,
+          },
         },
       ];
     }),
@@ -244,7 +250,12 @@ function bookLines(labels: DeckLabels, lines: Array<{ text: string; bold?: boole
     },
     ...lines.map((l) => ({
       text: l.text,
-      options: { fontSize: 20, bold: l.bold, color: l.bold ? NAVY : INK, breakLine: true },
+      options: {
+        fontSize: 20,
+        bold: l.bold,
+        color: l.bold ? NAVY : INK,
+        breakLine: true,
+      },
     })),
   ];
 }
@@ -265,55 +276,341 @@ export function fitFontSize(lines: string[], w: number, h: number, max: number, 
   return min;
 }
 
-/** The teacher strip along the foot of the slide; a long script takes two columns. */
-function teacherStrip(s: PptxSlide, lines: ScriptLine[], labels: DeckLabels) {
-  if (lines.length === 0) return;
-  s.addShape("rect", {
-    x: 0,
-    y: STRIP_Y,
-    w: W,
-    h: STRIP_H,
-    fill: { color: STRIP },
-    line: { color: STRIP },
-  });
-  s.addText(`🗣 ${labels.teacher}`, {
-    x: MARGIN,
-    y: STRIP_Y + 0.1,
-    w: 1.5,
-    h: 0.4,
-    fontFace: FONT,
-    fontSize: 14,
-    bold: true,
-    color: GOLD,
-  });
+type Area = { x: number; y: number; w: number; h: number };
 
-  const columns = lines.length > 5 ? [lines.slice(0, Math.ceil(lines.length / 2)), lines.slice(Math.ceil(lines.length / 2))] : [lines];
-  const gap = 0.25;
-  const colW = (BODY_W - 1.5 - gap * (columns.length - 1)) / columns.length;
-  const asText = (l: ScriptLine) => `${labels.script[l.kind].toUpperCase()}  ${l.text}`;
-  // One size for both columns, fitted to the fuller one.
-  const size = Math.min(
-    ...columns.map((col) => fitFontSize(col.map(asText), colW - 0.1, STRIP_H - 0.25, 14)),
-  );
-  columns.forEach((col, i) => {
-    s.addText(
-      col.flatMap((line): PptxGenJS.TextProps[] => [
-        { text: `${labels.script[line.kind].toUpperCase()}  `, options: { bold: true, color: CUE[line.kind] } },
-        { text: line.text, options: { color: "FFFFFF", breakLine: true } },
-      ]),
-      {
-        x: MARGIN + 1.5 + i * (colW + gap),
-        y: STRIP_Y + 0.1,
-        w: colW,
-        h: STRIP_H - 0.2,
-        fontFace: FONT,
-        fontSize: size,
-        valign: "top",
-        paraSpaceAfter: 3,
-        margin: 2,
-      },
-    );
+/** Height (in) `lines` take at `size` pt in a box `w` wide. */
+function textHeight(lines: string[], w: number, size: number, paraPt = 8): number {
+  const charsPerRow = Math.max(1, Math.floor((w * 72) / (size * 0.5)));
+  const rows = lines.reduce((n, line) => n + Math.max(1, Math.ceil(line.length / charsPerRow)), 0);
+  return (rows * size * 1.2 + lines.length * paraPt) / 72 + 0.2;
+}
+
+/**
+ * The class's numbered instructions in a tinted panel at the top of `area`;
+ * returns what is left of the area beneath it.
+ */
+function instructionsPanel(s: PptxSlide, items: string[], area: Area): Area {
+  if (items.length === 0) return area;
+  // Each step is a navy number disc and its text — drawn, not a list bullet,
+  // which renderers indent unpredictably.
+  const disc = 0.36;
+  const w = area.w - disc - 0.45;
+  // At most ~45% of the area: the questions and content still need room.
+  const maxH = area.h * 0.45;
+  const size = fitFontSize(items, w, maxH - 0.2, 20, 12);
+  const heights = items.map((item) => textHeight([item], w, size, 0) - 0.08);
+  const h = Math.min(maxH, heights.reduce((a, b) => a + b, 0) + 0.2);
+  s.addShape("rect", { ...area, h, fill: { color: LIGHT30 }, line: { color: LIGHT30 } });
+  let y = area.y + 0.1;
+  items.forEach((text, i) => {
+    const rowH = heights[i]!;
+    s.addText(String(i + 1), {
+      x: area.x + 0.12,
+      y: y + 0.06,
+      w: disc,
+      h: disc,
+      shape: "ellipse",
+      fill: { color: NAVY },
+      fontFace: FONT,
+      fontSize: Math.min(14, size - 4),
+      bold: true,
+      color: "FFFFFF",
+      align: "center",
+      valign: "middle",
+      margin: 0,
+    });
+    s.addText(text, {
+      x: area.x + disc + 0.25,
+      y,
+      w,
+      h: rowH,
+      fontFace: FONT,
+      fontSize: size,
+      bold: true,
+      color: NAVY,
+      valign: "top",
+      margin: [4, 4, 0, 4],
+    });
+    y += rowH;
   });
+  return { ...area, y: area.y + h + 0.2, h: area.h - h - 0.2 };
+}
+
+/** A sentence frame in a gold box, its type sized to fit. */
+function frameBox(s: PptxSlide, text: string, at: Area) {
+  const fontSize = fitFontSize([text], at.w - 0.35, at.h - 0.25, 20, 11);
+  box(s, [{ text, options: { fontSize, italic: true, color: INK } }], at, GOLD15, GOLD);
+}
+
+/** The text column: the full width, or the left column beside a visual. */
+function textArea(slide: Slide): Area {
+  return {
+    x: MARGIN,
+    y: BODY_Y,
+    w: hasVisual(slide.visual) ? TEXT_W : BODY_W,
+    h: BODY_H,
+  };
+}
+
+/** Draw a slide's visual in the right-hand column, if it has one. */
+function visualPanel(s: PptxSlide, visual: Visual) {
+  if (!hasVisual(visual)) return;
+  const area: Area = { x: VISUAL_X, y: BODY_Y, w: VISUAL_W, h: BODY_H - 0.1 };
+  s.addShape("roundRect", {
+    ...area,
+    fill: { color: PANEL },
+    line: { color: PANEL_LINE, width: 1 },
+    rectRadius: 0.12,
+  });
+  const caption = visual.caption.trim();
+  const inner: Area = {
+    x: area.x + 0.2,
+    y: area.y + 0.2,
+    w: area.w - 0.4,
+    h: area.h - 0.4 - (caption ? 0.7 : 0),
+  };
+  drawVisual(s, visual, inner);
+  if (caption) {
+    s.addText(caption, {
+      x: area.x + 0.2,
+      y: area.y + area.h - 0.85,
+      w: area.w - 0.4,
+      h: 0.65,
+      fontFace: FONT,
+      fontSize: fitFontSize([caption], area.w - 0.5, 0.6, 16, 10),
+      bold: true,
+      color: NAVY,
+      align: "center",
+      valign: "middle",
+    });
+  }
+}
+
+function drawVisual(s: PptxSlide, visual: Visual, at: Area) {
+  switch (visual.kind) {
+    case "objects": {
+      // Groups one above another, each as wide as the panel, centred.
+      const groups = visual.groups.filter((g) => g.count > 0).slice(0, 4);
+      const gap = 0.2;
+      const gh = Math.min(2.2, (at.h - gap * (groups.length - 1)) / groups.length);
+      const top = at.y + (at.h - (gh * groups.length + gap * (groups.length - 1))) / 2;
+      const shape = (g: Visual["groups"][number]) => {
+        const n = Math.min(g.count, 30);
+        const perRow = Math.min(10, n);
+        return { n, perRow, rows: Math.ceil(n / perRow), labelH: g.label ? 0.45 : 0 };
+      };
+      // One emoji size for every group, so pupils compare amounts, not sizes.
+      const size = Math.max(
+        10,
+        Math.min(
+          40,
+          ...groups.map((g) => {
+            const { perRow, rows, labelH } = shape(g);
+            return Math.min(((at.w - 0.3) * 72) / (perRow * 1.45), ((gh - labelH - 0.2) * 72) / (rows * 1.3));
+          }),
+        ),
+      );
+      groups.forEach((g, i) => {
+        const { n, perRow, rows, labelH } = shape(g);
+        const y = top + i * (gh + gap);
+        s.addShape("roundRect", {
+          x: at.x,
+          y,
+          w: at.w,
+          h: gh,
+          fill: { color: "FFFFFF" },
+          line: { color: "9AA6B8", width: 1, dashType: "dash" },
+          rectRadius: 0.1,
+        });
+        const lines = Array.from({ length: rows }, (_, r) =>
+          Array.from({ length: Math.min(perRow, n - r * perRow) }, () => g.emoji).join(" "),
+        );
+        s.addText(lines.join("\n"), {
+          x: at.x,
+          y: y + 0.05,
+          w: at.w,
+          h: gh - labelH - 0.05,
+          fontSize: size,
+          align: "center",
+          valign: "middle",
+        });
+        if (g.label) {
+          s.addText(g.label, {
+            x: at.x,
+            y: y + gh - labelH - 0.05,
+            w: at.w,
+            h: labelH,
+            fontFace: FONT,
+            fontSize: fitFontSize([g.label], at.w - 0.2, labelH - 0.05, 18, 10),
+            bold: true,
+            color: NAVY,
+            align: "center",
+            valign: "middle",
+          });
+        }
+      });
+      break;
+    }
+    case "number_line": {
+      const { from, to, step, highlight } = visual.number_line;
+      const count = Math.min(40, Math.floor((to - from) / step));
+      const y = at.y + at.h / 2;
+      const x0 = at.x + 0.15;
+      const span = at.w - 0.3;
+      const xAt = (i: number) => x0 + (i / Math.max(1, count)) * span;
+      s.addShape("line", {
+        x: x0,
+        y,
+        w: span,
+        h: 0,
+        line: { color: NAVY, width: 2 },
+      });
+      // Label every tick when they fit, else every other one.
+      const every = count > 20 ? 2 : 1;
+      for (let i = 0; i <= count; i++) {
+        const n = +(from + i * step).toFixed(4);
+        const on = highlight.includes(n);
+        if (on) {
+          s.addShape("ellipse", {
+            x: xAt(i) - 0.15,
+            y: y - 0.15,
+            w: 0.3,
+            h: 0.3,
+            fill: { color: GOLD },
+            line: { color: GOLD },
+          });
+        }
+        s.addShape("line", {
+          x: xAt(i),
+          y: y - 0.12,
+          w: 0,
+          h: 0.24,
+          line: { color: NAVY, width: 1.5 },
+        });
+        if (i % every === 0 || on) {
+          s.addText(String(n), {
+            x: xAt(i) - 0.35,
+            y: y + 0.2,
+            w: 0.7,
+            h: 0.4,
+            fontFace: FONT,
+            fontSize: count > 12 ? 11 : 15,
+            bold: on,
+            color: NAVY,
+            align: "center",
+          });
+        }
+      }
+      break;
+    }
+    case "place_value": {
+      const pv = visual.place_value;
+      const head = {
+        bold: true,
+        color: "FFFFFF",
+        fill: { color: NAVY },
+        align: "center" as const,
+      };
+      const cell = {
+        bold: true,
+        color: NAVY,
+        fontSize: 40,
+        align: "center" as const,
+      };
+      s.addTable(
+        [
+          ["H", "T", "O"].map((text) => ({ text, options: head })),
+          [pv.hundreds, pv.tens, pv.ones].map((d) => ({
+            text: String(d),
+            options: cell,
+          })),
+        ],
+        {
+          x: at.x + 0.2,
+          y: at.y + at.h / 2 - 1,
+          w: at.w - 0.4,
+          rowH: [0.5, 1.2],
+          fontFace: FONT,
+          fontSize: 18,
+          valign: "middle",
+          border: { type: "solid", pt: 1.5, color: NAVY },
+        },
+      );
+      break;
+    }
+    case "table": {
+      const { headers, rows } = visual.table;
+      const body = rows.slice(0, 8);
+      const cols = Math.max(headers.length, ...body.map((r) => r.length), 1);
+      const pad = (r: string[]) => Array.from({ length: cols }, (_, i) => r[i] ?? "");
+      const all = [...(headers.length ? [headers] : []), ...body].map(pad);
+      const rowH = Math.min(0.6, at.h / all.length);
+      s.addTable(
+        all.map((r, ri) =>
+          r.map((text) => ({
+            text,
+            options:
+              ri === 0 && headers.length
+                ? { bold: true, color: "FFFFFF", fill: { color: NAVY } }
+                : { color: INK, fill: { color: "FFFFFF" } },
+          })),
+        ),
+        {
+          x: at.x,
+          y: at.y,
+          w: at.w,
+          rowH,
+          fontFace: FONT,
+          fontSize: Math.max(11, Math.min(18, rowH * 30)),
+          align: "center",
+          valign: "middle",
+          border: { type: "solid", pt: 1, color: NAVY },
+        },
+      );
+      break;
+    }
+    case "word_cards": {
+      const cards = visual.cards.slice(0, 6);
+      const perRow = cards.length > 3 ? 2 : 1;
+      const rows = Math.ceil(cards.length / perRow);
+      const gap = 0.2;
+      const cw = (at.w - gap * (perRow - 1)) / perRow;
+      const ch = Math.min(1.5, (at.h - gap * (rows - 1)) / rows);
+      cards.forEach((c, i) => {
+        const x = at.x + (i % perRow) * (cw + gap);
+        const y = at.y + Math.floor(i / perRow) * (ch + gap);
+        s.addText(
+          [
+            ...(c.emoji ? [{ text: `${c.emoji}  `, options: { fontSize: 28 } }] : []),
+            { text: c.text, options: { bold: true, color: NAVY } },
+          ],
+          {
+            x,
+            y,
+            w: cw,
+            h: ch,
+            fontFace: FONT,
+            fontSize: fitFontSize([`${c.emoji}  ${c.text}`], cw - 0.3, ch - 0.2, 24, 11),
+            fill: { color: "FFFFFF" },
+            line: { color: GOLD, width: 2 },
+            align: "center",
+            valign: "middle",
+          },
+        );
+      });
+      break;
+    }
+    case "picture":
+      s.addText(visual.emoji, {
+        ...at,
+        fontSize: 120,
+        align: "center",
+        valign: "middle",
+      });
+      break;
+    default:
+      break;
+  }
 }
 
 /** Speaker notes: the script, then the extras this slide calls for. */
@@ -369,11 +666,27 @@ export async function deckToPptx(
     background: { color: "FFFFFF" },
     objects: [
       { rect: { x: 0, y: 0, w: W * 0.82, h: 0.12, fill: { color: NAVY } } },
-      { rect: { x: W * 0.82, y: 0, w: W * 0.18, h: 0.12, fill: { color: GOLD } } },
+      {
+        rect: {
+          x: W * 0.82,
+          y: 0,
+          w: W * 0.18,
+          h: 0.12,
+          fill: { color: GOLD },
+        },
+      },
       {
         text: {
           text: "Silverleaf Academy",
-          options: { x: MARGIN, y: 7.12, w: 4, h: 0.3, fontFace: FONT, fontSize: 10, color: MUTED },
+          options: {
+            x: MARGIN,
+            y: 7.12,
+            w: 4,
+            h: 0.3,
+            fontFace: FONT,
+            fontSize: 10,
+            color: MUTED,
+          },
         },
       },
     ],
@@ -389,11 +702,11 @@ export async function deckToPptx(
     },
   });
 
-  /** A new slide with the phase bar, teacher strip and notes already on. */
+  /** A new slide with the phase bar, visual and notes already on. */
   const add = (slide: Slide, script: ScriptLine[] = slide.script) => {
     const s = pptx.addSlide({ masterName: "SILVERLEAF" });
     phaseBar(s, slide, labels);
-    teacherStrip(s, script, labels);
+    visualPanel(s, slide.visual);
     const notes = notesFor(slide, script, extras, labels, deck.language);
     if (notes) s.addNotes(notes);
     return s;
@@ -423,9 +736,19 @@ export async function deckToPptx(
       case "title": {
         const s = add(slide);
         s.background = { color: NAVY };
+        if (slide.emoji) {
+          s.addText(slide.emoji, {
+            x: MARGIN,
+            y: 0.5,
+            w: 2,
+            h: 1.2,
+            fontSize: 60,
+            valign: "middle",
+          });
+        }
         s.addText(slide.heading, {
           x: MARGIN,
-          y: 1.4,
+          y: 1.8,
           w: BODY_W,
           h: 1.7,
           fontFace: FONT,
@@ -438,7 +761,7 @@ export async function deckToPptx(
         if (slide.subheading) {
           s.addText(slide.subheading, {
             x: MARGIN,
-            y: 3.3,
+            y: 3.7,
             w: Math.min(BODY_W, 0.6 + slide.subheading.length * 0.16),
             h: 0.6,
             fontFace: FONT,
@@ -452,7 +775,7 @@ export async function deckToPptx(
         }
         s.addText(`⏱ ${labels.duration(slide.lessonMinutes)}`, {
           x: MARGIN,
-          y: 4.1,
+          y: 4.5,
           w: 5,
           h: 0.5,
           fontFace: FONT,
@@ -464,9 +787,10 @@ export async function deckToPptx(
       case "getReady": {
         const s = add(slide);
         heading(s, slide.heading);
+        const rest = instructionsPanel(s, slide.instructions, textArea(slide));
         s.addText(labels.youNeed.toUpperCase(), {
           x: MARGIN,
-          y: BODY_Y,
+          y: rest.y,
           w: 5,
           h: 0.4,
           fontFace: FONT,
@@ -474,7 +798,11 @@ export async function deckToPptx(
           bold: true,
           color: MUTED,
         });
-        list(s, slide.materials, false, { y: BODY_Y + 0.45, w: 5, h: BODY_H - 0.45 });
+        list(s, slide.materials, false, {
+          y: rest.y + 0.45,
+          w: 5,
+          h: rest.h - 0.45,
+        });
         box(
           s,
           bookLines(labels, [
@@ -482,7 +810,7 @@ export async function deckToPptx(
             { text: slide.bookTitle, bold: true },
             { text: slide.bookGoal },
           ]),
-          { x: MARGIN + 5.6, y: BODY_Y, w: BODY_W - 5.6, h: BODY_H - 0.2 },
+          { x: MARGIN + 5.6, y: rest.y, w: BODY_W - 5.6, h: rest.h - 0.2 },
           "FFFFFF",
           "C7D4E6",
         );
@@ -492,54 +820,100 @@ export async function deckToPptx(
         const draw = (withAnswers: boolean) => {
           const s = add(slide);
           heading(s, slide.heading);
-          body(s, slide.prompt, { h: 1.8, size: Math.min(28, bodySize(slide.prompt.length) + 2) });
+          let rest = instructionsPanel(s, slide.instructions, textArea(slide));
           if (slide.sentenceFrame.trim()) {
-            box(
-              s,
-              [{ text: slide.sentenceFrame, options: { fontSize: 20, italic: true, color: INK } }],
-              { x: MARGIN, y: BODY_Y + 1.9, w: BODY_W, h: 0.65 },
-              GOLD15,
-              GOLD,
-            );
+            frameBox(s, slide.sentenceFrame, { ...rest, h: 0.65 });
+            rest = { ...rest, y: rest.y + 0.85, h: rest.h - 0.85 };
           }
           if (withAnswers) {
             box(
               s,
               slide.answers.map((a) => ({
                 text: `✓ ${a}`,
-                options: { fontSize: 18, bold: true, color: GREEN, breakLine: true },
+                options: {
+                  fontSize: 18,
+                  bold: true,
+                  color: GREEN,
+                  breakLine: true,
+                },
               })),
-              { x: MARGIN, y: BODY_Y + 2.7, w: BODY_W, h: 1.1 },
+              {
+                ...rest,
+                h: Math.min(rest.h, 0.35 + slide.answers.length * 0.4),
+              },
               GREEN_BG,
               GREEN,
             );
           }
         };
         draw(false);
-        if (slide.steps > 0) draw(true);
+        if (slide.steps > instructionClicks(slide)) draw(true);
         break;
       }
       case "keyWords": {
         const s = add(slide);
         heading(s, slide.heading, labels.newWords);
-        const rowH = Math.min(0.75, (BODY_H - 0.1) / slide.words.length);
+        // Cards, three to a row.
+        const perRow = Math.min(3, slide.words.length);
+        const rows = Math.ceil(slide.words.length / perRow);
+        const gap = 0.3;
+        const cw = (BODY_W - gap * (perRow - 1)) / perRow;
+        const ch = Math.min(2.6, (BODY_H - 0.1 - gap * (rows - 1)) / rows);
+        const top = BODY_Y + (BODY_H - (ch * rows + gap * (rows - 1))) / 2;
         slide.words.forEach((w, i) => {
+          const x = MARGIN + (i % perRow) * (cw + gap);
+          const y = top + Math.floor(i / perRow) * (ch + gap);
+          s.addShape("roundRect", {
+            x,
+            y,
+            w: cw,
+            h: ch,
+            fill: { color: "FFFFFF" },
+            line: { color: LIGHT, width: 1.5 },
+            rectRadius: 0.12,
+          });
+          s.addShape("rect", {
+            x,
+            y,
+            w: cw,
+            h: 0.1,
+            fill: { color: GOLD },
+            line: { color: GOLD },
+          });
+          const meaningSize = fitFontSize([w.meaning], cw - 0.3, ch * 0.35, 18, 11);
           s.addText(
             [
-              { text: w.word, options: { bold: true, color: NAVY } },
-              { text: `   —   ${w.meaning}`, options: { color: INK } },
+              ...(w.emoji
+                ? [
+                    {
+                      text: w.emoji,
+                      options: { fontSize: 40, breakLine: true },
+                    },
+                  ]
+                : []),
+              {
+                text: w.word,
+                options: {
+                  fontSize: 26,
+                  bold: true,
+                  color: NAVY,
+                  breakLine: true,
+                },
+              },
+              {
+                text: w.meaning,
+                options: { fontSize: meaningSize, color: INK },
+              },
             ],
             {
-              x: MARGIN,
-              y: BODY_Y + i * rowH,
-              w: BODY_W,
-              h: rowH - 0.08,
+              x,
+              y: y + 0.15,
+              w: cw,
+              h: ch - 0.2,
               fontFace: FONT,
-              fontSize: 20,
-              fill: { color: LIGHT30 },
-              margin: 8,
+              align: "center",
               valign: "middle",
-              fit: "shrink",
+              margin: 8,
             },
           );
         });
@@ -548,27 +922,47 @@ export async function deckToPptx(
       case "points": {
         const s = add(slide);
         heading(s, slide.heading);
-        list(s, slide.points, false);
+        list(s, slide.points, false, textArea(slide));
         break;
       }
       case "example": {
         const s = add(slide);
         heading(s, slide.heading, labels.workedExample(slide.number));
-        body(s, slide.problem, { h: 0.7, size: 22, bold: true });
+        const area = textArea(slide);
+        body(s, slide.problem, { ...area, h: 0.8, size: 22, bold: true });
         const hasNote = Boolean(slide.bookNote.trim());
-        list(s, slide.workSteps, true, {
-          y: BODY_Y + 0.8,
-          w: hasNote ? 7.2 : BODY_W,
-          h: BODY_H - 0.8,
-        });
-        if (hasNote) {
-          box(
-            s,
-            bookLines(labels, [{ text: slide.bookNote }]),
-            { x: MARGIN + 7.5, y: BODY_Y + 0.8, w: BODY_W - 7.5, h: BODY_H - 0.9 },
-            "FFFFFF",
-            "C7D4E6",
-          );
+        if (hasVisual(slide.visual)) {
+          // Steps, with the book note under them, beside the visual.
+          const noteH = hasNote ? 1.4 : 0;
+          list(s, slide.workSteps, true, {
+            ...area,
+            y: BODY_Y + 0.9,
+            h: BODY_H - 0.9 - noteH,
+          });
+          if (hasNote) {
+            box(
+              s,
+              bookLines(labels, [{ text: slide.bookNote }]),
+              { ...area, y: BODY_Y + BODY_H - noteH, h: noteH - 0.1 },
+              "FFFFFF",
+              "C7D4E6",
+            );
+          }
+        } else {
+          list(s, slide.workSteps, true, {
+            y: BODY_Y + 0.9,
+            w: hasNote ? 7.2 : BODY_W,
+            h: BODY_H - 0.9,
+          });
+          if (hasNote) {
+            box(
+              s,
+              bookLines(labels, [{ text: slide.bookNote }]),
+              { x: MARGIN + 7.5, y: BODY_Y + 0.9, w: BODY_W - 7.5, h: 2.6 },
+              "FFFFFF",
+              "C7D4E6",
+            );
+          }
         }
         break;
       }
@@ -576,10 +970,13 @@ export async function deckToPptx(
         const draw = (withAnswer: boolean) => {
           const s = add(slide);
           heading(s, labels.checkpoint);
-          body(s, slide.question, {
-            h: withAnswer ? 2 : BODY_H,
-            size: Math.min(30, bodySize(slide.question.length) + 4),
-            bold: true,
+          const area = textArea(slide);
+          const qh = Math.min(1.8, textHeight([slide.question], area.w, 28));
+          body(s, slide.question, { ...area, h: qh, size: 28, bold: true });
+          const rest = instructionsPanel(s, slide.instructions, {
+            ...area,
+            y: area.y + qh + 0.1,
+            h: area.h - qh - 0.1,
           });
           if (withAnswer) {
             box(
@@ -587,18 +984,23 @@ export async function deckToPptx(
               [
                 {
                   text: labels.answer.toUpperCase(),
-                  options: { fontSize: 13, bold: true, color: GREEN, breakLine: true },
+                  options: {
+                    fontSize: 13,
+                    bold: true,
+                    color: GREEN,
+                    breakLine: true,
+                  },
                 },
                 { text: slide.answer, options: { fontSize: 22, color: INK } },
               ],
-              { x: MARGIN, y: BODY_Y + 2.1, w: BODY_W, h: 1.5 },
+              { ...rest, h: Math.min(rest.h, 1.5) },
               GREEN_BG,
               GREEN,
             );
           }
         };
         draw(false);
-        if (slide.steps > 0) draw(true);
+        if (slide.steps > instructionClicks(slide)) draw(true);
         break;
       }
       case "round": {
@@ -607,16 +1009,11 @@ export async function deckToPptx(
           slide,
           (s, qs) => {
             heading(s, slide.heading, slide.title);
-            body(s, slide.instruction, { h: 0.6, size: 20, bold: true });
-            list(s, qs, true, { y: BODY_Y + 0.7, h: hasFrame ? 2.35 : 3.1 });
+            const rest = instructionsPanel(s, slide.instructions, textArea(slide));
+            const frameH = hasFrame ? 0.8 : 0;
+            list(s, qs, true, { ...rest, h: rest.h - frameH });
             if (hasFrame) {
-              box(
-                s,
-                [{ text: slide.sentenceFrame, options: { fontSize: 18, italic: true, color: INK } }],
-                { x: MARGIN, y: BODY_Y + 3.15, w: BODY_W, h: 0.6 },
-                GOLD15,
-                GOLD,
-              );
+              frameBox(s, slide.sentenceFrame, { ...rest, y: rest.y + rest.h - 0.65, h: 0.6 });
             }
           },
           slide.questions,
@@ -635,8 +1032,7 @@ export async function deckToPptx(
           slide,
           (s, qs) => {
             heading(s, slide.heading);
-            body(s, `✏ ${slide.instruction}`, { h: 0.6, size: 20, bold: true });
-            list(s, qs, true, { y: BODY_Y + 0.7, h: BODY_H - 0.7 });
+            list(s, qs, true, instructionsPanel(s, slide.instructions, textArea(slide)));
           },
           all,
           slide.scriptAfterReveal,
@@ -648,8 +1044,7 @@ export async function deckToPptx(
           slide,
           (s, qs) => {
             heading(s, slide.heading);
-            body(s, `✏ ${slide.instruction}`, { h: 0.6, size: 20, bold: true });
-            list(s, qs, true, { y: BODY_Y + 0.7, h: BODY_H - 0.7 });
+            list(s, qs, true, instructionsPanel(s, slide.instructions, textArea(slide)));
           },
           slide.questions,
         );
@@ -672,7 +1067,7 @@ export async function deckToPptx(
         list(s, slide.recap, false, {
           y: BODY_Y + 0.45,
           w: 5.8,
-          h: hasHomework ? 2.1 : BODY_H - 0.45,
+          h: hasHomework ? BODY_H - 2.1 : BODY_H - 0.45,
         });
         if (hasHomework) {
           box(
@@ -680,11 +1075,16 @@ export async function deckToPptx(
             [
               {
                 text: `🏠 ${labels.homework.toUpperCase()}`,
-                options: { fontSize: 13, bold: true, color: BOOK, breakLine: true },
+                options: {
+                  fontSize: 13,
+                  bold: true,
+                  color: BOOK,
+                  breakLine: true,
+                },
               },
               { text: slide.homework, options: { fontSize: 18, color: INK } },
             ],
-            { x: MARGIN, y: BODY_Y + 2.65, w: 5.8, h: 1.15 },
+            { x: MARGIN, y: BODY_Y + BODY_H - 1.5, w: 5.8, h: 1.4 },
             "FFFFFF",
             "C7D4E6",
           );
@@ -700,7 +1100,10 @@ export async function deckToPptx(
           color: MUTED,
         });
         s.addText(
-          slide.selfCheck.map((text) => ({ text: `👍 👌 👎   ${text}`, options: { breakLine: true } })),
+          slide.selfCheck.map((text) => ({
+            text: `👍 👌 👎   ${text}`,
+            options: { breakLine: true },
+          })),
           {
             x: MARGIN + 6.2,
             y: BODY_Y + 0.45,

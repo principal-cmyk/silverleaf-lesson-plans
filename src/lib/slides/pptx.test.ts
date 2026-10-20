@@ -1,7 +1,7 @@
 /**
  * Deck → .pptx: a real PowerPoint package with the lesson's slides in order,
- * the teacher strip on every slide, each reveal as a following answers slide,
- * and the script in the speaker notes.
+ * each slide's numbered instructions and visual, each reveal as a following
+ * answers slide, and the teacher's script in the speaker notes only.
  */
 import { strFromU8, unzipSync } from "fflate";
 import { describe, expect, it } from "vitest";
@@ -24,7 +24,9 @@ const xmlText = (u8: Uint8Array) =>
 
 /** Slide XML texts in slide order, and the notes texts by slide number. */
 async function open(deck: SlideDeck) {
-  const buf = await deckToPptx(deck, teacherExtras(VALID_PLAN), { title: "Test" });
+  const buf = await deckToPptx(deck, teacherExtras(VALID_PLAN), {
+    title: "Test",
+  });
   const files = unzipSync(new Uint8Array(buf));
   const num = (name: string) => Number(name.match(/(\d+)\.xml$/)![1]);
   const slides = Object.keys(files)
@@ -52,7 +54,6 @@ describe("deckToPptx", () => {
     // round 1 ×2, round 2 ×2, ✔ ×2, exercise ×2, exit ×2, close
     expect(slides).toHaveLength(20);
     expect(slides[1]).toContain("Copy into your book".toUpperCase());
-    // The pupils' answer box (the teacher strip may already name the answer).
     expect(slides[2]).not.toContain("✓ The group of 10");
     expect(slides[3]).toContain("✓ The group of 10");
     expect(slides[9]).toContain("7 or 3?");
@@ -60,19 +61,24 @@ describe("deckToPptx", () => {
     expect(slides[10]).toContain("7 is many");
   });
 
-  it("shows each phase's minutes and the teacher strip", async () => {
-    const { slides } = await open(DECK);
+  it("shows each phase's minutes, the instructions and the visual — not the script", async () => {
+    const { slides, notes } = await open(DECK);
     expect(slides[2]).toContain("2–7 min");
     expect(slides[2]).toContain("5 minutes");
-    expect(slides[2]).toContain("Hold up 10 pencils and 1 pencil.");
-    expect(slides[2]).toContain("EXPECT");
+    expect(slides[2]).toContain("Look at the two groups.");
+    expect(slides[2]).toContain("Which group has more pencils?");
+    expect(slides[2]).toContain("Group A"); // the objects visual
+    expect(slides[2]).toContain("Count each group");
+    expect(slides[2]).not.toContain("Hold up 10 pencils and 1 pencil.");
+    expect(notes.get(3)).toContain("DO: Hold up 10 pencils and 1 pencil.");
+    expect(notes.get(3)).toContain("EXPECT: The group of 10.");
   });
 
   it("uses the marking script on the exercise answers slide", async () => {
-    const { slides } = await open(DECK);
+    const { slides, notes } = await open(DECK);
     const exercise = slides.findIndex((s) => s.includes("circle the MANY group"));
-    expect(slides[exercise]).toContain("Work quietly.");
-    expect(slides[exercise + 1]).toContain("Swap books and tick.");
+    expect(notes.get(exercise + 1)).toContain("Work quietly.");
+    expect(notes.get(exercise + 2)).toContain("Swap books and tick.");
   });
 
   it("puts the script, and the plan's misconceptions where they belong, in the notes", async () => {
@@ -83,10 +89,10 @@ describe("deckToPptx", () => {
   });
 
   it("uses Kiswahili labels for a Kiswahili deck", async () => {
-    const { slides } = await open({ ...DECK, language: "sw" });
+    const { slides, notes } = await open({ ...DECK, language: "sw" });
     expect(slides[1]).toContain("NAKILI KWENYE DAFTARI LAKO");
     expect(slides[2]).toContain("dakika 2–7");
-    expect(slides[2]).toContain("TARAJIA");
+    expect(notes.get(3)).toContain("TARAJIA");
   });
 });
 
