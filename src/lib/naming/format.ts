@@ -8,8 +8,12 @@
  * @see ./parse.ts for the inverse.
  */
 import { NAMING } from "./constants";
+import { gradeToken, parseGradeNum } from "./grade";
 
-/** Fields needed to assemble a filename. `grade` accepts `7` or `"G7"`. */
+/**
+ * Fields needed to assemble a filename. `grade` accepts a grade number (`7`,
+ * `-2` for KG1), a token (`"G7"`, `"KG1"`) or a label (`"Grade 7"`).
+ */
 export interface FilenameParts {
   grade: string | number;
   subject: string;
@@ -18,10 +22,11 @@ export interface FilenameParts {
   lesson: number;
 }
 
-/** Coerce a grade given as `7`, `"7"`, or `"G7"` into its numeric value. */
-function gradeNumber(grade: string | number): number {
-  if (typeof grade === "number") return grade;
-  return Number(grade.trim().replace(/^[Gg]/, ""));
+/** Coerce any accepted grade form into its grade token (`G7`, `KG1`). */
+function gradeTokenOf(grade: string | number): string {
+  const n = parseGradeNum(grade);
+  if (n == null) throw new Error(`buildFilename: "${grade}" is not a valid grade`);
+  return gradeToken(n);
 }
 
 /**
@@ -51,11 +56,11 @@ export function subjectToken(subject: string): string {
  *   // → "G7_Math_T1a_W1_L1"
  */
 export function buildFilename(input: FilenameParts): string {
-  const grade = gradeNumber(input.grade);
+  const grade = gradeTokenOf(input.grade);
   const term = input.term.replace(/^[Tt]/, "");
   const sep = NAMING.separator;
   return [
-    `G${grade}`,
+    grade,
     input.subject,
     `T${term}`,
     `W${input.week}`,

@@ -23,6 +23,7 @@ import path from "node:path";
 import { and, eq } from "drizzle-orm";
 
 import { TERM_ORDINAL, type Term } from "@/lib/naming/constants";
+import { gradeLabel, gradeToken, parseGradeNum } from "@/lib/naming/grade";
 import { parseSowDocx } from "@/lib/sow/parse";
 
 import { db } from "../client";
@@ -54,10 +55,10 @@ function toTerm(raw: string | undefined): Term {
   );
 }
 
-/** First run of digits in a grade label ("Grade 2" → 2). */
+/** Grade number of a grade label ("Grade 2" → 2, "KG1" → -2). */
 function toGradeNum(raw: string | undefined): number {
-  const n = parseInt((raw ?? "").replace(/\D/g, ""), 10);
-  if (!Number.isFinite(n) || n <= 0) {
+  const n = parseGradeNum(raw);
+  if (n == null) {
     throw new Error(
       `[db:seed] scheme grade "${raw}" has no usable grade number.`,
     );
@@ -105,8 +106,8 @@ export async function seedSchemes(): Promise<SeededScheme[]> {
       const inserted = await db
         .insert(schemesOfWork)
         .values({
-          title: `${parsed.scheme.grade ?? `Grade ${gradeNum}`} ${subject} — Term ${term.toUpperCase()}`,
-          grade: parsed.scheme.grade ?? `Grade ${gradeNum}`,
+          title: `${gradeLabel(gradeNum)} ${subject} — Term ${term.toUpperCase()}`,
+          grade: gradeLabel(gradeNum),
           gradeNum,
           subject,
           term,
@@ -152,13 +153,13 @@ export async function seedSchemes(): Promise<SeededScheme[]> {
       }
 
       console.log(
-        `[db:seed] scheme "${subject}" G${gradeNum} T${term}: ` +
+        `[db:seed] scheme "${subject}" ${gradeToken(gradeNum)} T${term}: ` +
           `${lessonRows.length} lessons ` +
           `(week tables kept=${parsed.stats.weekTablesKept} dropped=${parsed.stats.weekTablesDropped})`,
       );
     } else {
       console.log(
-        `[db:seed] scheme "${subject}" G${gradeNum} T${term} already present; skipped`,
+        `[db:seed] scheme "${subject}" ${gradeToken(gradeNum)} T${term} already present; skipped`,
       );
     }
 

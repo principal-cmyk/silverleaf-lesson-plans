@@ -1,3 +1,4 @@
+import { gradeToken } from "@/lib/naming/grade";
 import "server-only";
 
 /**
@@ -122,7 +123,7 @@ export async function loadSchemeLessonContext(
       totalLessons: scheme.totalLessons,
     },
     naming: {
-      grade: `G${scheme.gradeNum}`,
+      grade: gradeToken(scheme.gradeNum),
       subject: scheme.subject,
       term: scheme.term,
       week,

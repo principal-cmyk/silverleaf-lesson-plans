@@ -8,17 +8,18 @@
  * its "/[locale]/..." route pattern (locale-less literals match nothing — see
  * feedback.ts).
  *
- * gradeNum:    parseInt(grade.replace(/\D/g, ''))       e.g. "Grade 7" → 7
+ * gradeNum:    parseGradeNum(grade) (lib/naming/grade)   "Grade 7" → 7, "KG1" → -2
  * termOrdinal: { "1a":1, "1b":2, "2a":3, "2b":4 }
  */
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count, countDistinct, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { hasApiKey } from "@/lib/ai/model";
+import { gradeLabel, gradeToken, parseGradeNum } from "@/lib/naming/grade";
 import { requireAdmin } from "@/lib/auth";
 import { actionFailure, type ActionResult } from "@/lib/contracts";
 import { db } from "@/lib/db";
-import { schemesOfWork, sowLessons } from "@/lib/db/schema";
+import { lessonPlans, schemesOfWork, sowLessons } from "@/lib/db/schema";
 import {
   extractSowWithModel,
   MAX_TEXT_CHARS,
@@ -47,8 +48,9 @@ const TERM_ORDINAL_MAP: Record<string, number> = {
   "2b": 4,
 };
 
+/** Grade number for the preview, 0 when the label names no valid grade. */
 function deriveGradeNum(grade: string): number {
-  return parseInt(grade.replace(/\D/g, ""), 10) || 0;
+  return parseGradeNum(grade) ?? 0;
 }
 
 function deriveTermOrdinal(term: string): number {
@@ -146,7 +148,13 @@ export interface CreateSchemeInput extends SowUploadInput {
 /** List all schemes of work with a lesson-row count. Admin-only. */
 export async function listSchemes(): Promise<
   ActionResult & {
-    schemes?: Array<typeof schemesOfWork.$inferSelect & { rowCount: number }>;
+    schemes?: Array<
+      typeof schemesOfWork.$inferSelect & {
+        rowCount: number;
+        /** How many of the scheme's lesson rows already have a saved plan. */
+        plannedCount: number;
+      }
+    >;
   }
 > {
   await requireAdmin();
@@ -166,9 +174,23 @@ export async function listSchemes(): Promise<
         asc(schemesOfWork.termOrdinal),
       );
 
+    // Plan coverage, counted separately so the lesson-row count above isn't
+    // multiplied by a second one-to-many join. A lesson regenerated twice
+    // still counts once.
+    const planned = await db
+      .select({
+        schemeId: sowLessons.schemeId,
+        planned: countDistinct(lessonPlans.schemeLessonId),
+      })
+      .from(lessonPlans)
+      .innerJoin(sowLessons, eq(sowLessons.id, lessonPlans.schemeLessonId))
+      .groupBy(sowLessons.schemeId);
+    const plannedBy = new Map(planned.map((p) => [p.schemeId, Number(p.planned)]));
+
     const schemes = rows.map((r) => ({
       ...r.scheme,
       rowCount: Number(r.rowCount),
+      plannedCount: plannedBy.get(r.scheme.id) ?? 0,
     }));
 
     return { ok: true, schemes };
@@ -342,7 +364,15 @@ export async function previewSowUpload(input: SowUploadInput): Promise<
  */
 export async function createSchemeFromUpload(
   input: CreateSchemeInput,
-): Promise<ActionResult & { schemeId?: string; rowCount?: number }> {
+): Promise<
+  ActionResult & {
+    schemeId?: string;
+    rowCount?: number;
+    /** Where the new scheme is filed, so the list can open that grade/term. */
+    gradeToken?: string;
+    term?: string;
+  }
+> {
   const user = await requireAdmin();
 
   const result = await parseUpload(input);
@@ -352,28 +382,31 @@ export async function createSchemeFromUpload(
 
   // Caller overrides win over derived values.
   const title = input.title?.trim() || derived.title;
-  const grade = input.grade?.trim() || derived.grade;
-  const gradeNum = deriveGradeNum(grade);
+  const gradeRaw = input.grade?.trim() || derived.grade;
+  const parsedGradeNum = parseGradeNum(gradeRaw);
+  // Store the canonical label ("kg 1" → "KG1") so the list groups cleanly.
+  const grade = parsedGradeNum != null ? gradeLabel(parsedGradeNum) : gradeRaw;
   const subject = input.subject?.trim() || derived.subject;
   const term = input.term?.trim() || derived.term;
   const termOrdinal = deriveTermOrdinal(term);
   const year = input.year?.trim() || derived.year;
 
   // Reject degenerate scheme meta instead of persisting it: batch generation
-  // derives its grade token from gradeNum (`G${gradeNum}` — 0 would silently
-  // file every plan under "G0"), and a blank subject/term makes
+  // derives its grade token from gradeNum (an unreadable grade would file
+  // every plan under a bogus token), and a blank subject/term makes
   // `savePlanStructured` reject each plan AFTER a paid model call. The Schemes
   // page's upload grid lets the admin fill these in; the Studio panel has no
   // meta fields, so it surfaces this authored message instead.
   const missing: string[] = [];
-  if (!grade || gradeNum === 0) missing.push("grade");
+  if (parsedGradeNum == null) missing.push("grade");
   if (!subject) missing.push("subject");
   if (!term) missing.push("term");
-  if (missing.length > 0) {
+  if (parsedGradeNum == null || missing.length > 0) {
     return actionFailure("invalid-input", {
       message: `Scheme metadata is missing or invalid: ${missing.join(", ")}. Fill in these fields (or fix the file's header), then save again.`,
     });
   }
+  const gradeNum = parsedGradeNum;
 
   // Only persist a header context when it carries real curriculum content.
   const headerContext: SchemeHeaderContext | null = isEmptyHeaderContext(
@@ -434,7 +467,13 @@ export async function createSchemeFromUpload(
     }
 
     revalidatePath("/[locale]/admin/ai-studio/schemes", "page");
-    return { ok: true, schemeId, rowCount: rows.length };
+    return {
+      ok: true,
+      schemeId,
+      rowCount: rows.length,
+      gradeToken: gradeToken(gradeNum),
+      term: term.toLowerCase(),
+    };
   } catch (err) {
     return actionFailure("failed", { cause: err });
   }

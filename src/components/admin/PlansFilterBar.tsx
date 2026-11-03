@@ -3,8 +3,8 @@
 /**
  * PlansFilterBar — admin filter controls for the plans listing.
  *
- * URL-driven: every change is written to the query string (`?grade=&subject=
- * &status=&q=`) via a locale-aware `router.replace`, so the server page
+ * URL-driven: every change is written to the query string (`?subject=
+ * &status=&q=`; grade and term are chosen by GradeTermNav above the bar) via a locale-aware `router.replace`, so the server page
  * re-renders the first filtered batch and the state is shareable / bookmarkable.
  * The text search debounces before navigating; the selects navigate immediately.
  *
@@ -63,7 +63,7 @@ export default function PlansFilterBar({
   }
 
   const hasFilters = Boolean(
-    filters.grade || filters.subject || filters.status || filters.q,
+    filters.grade || filters.term || filters.subject || filters.status || filters.q,
   );
 
   function clearAll() {
@@ -88,20 +88,6 @@ export default function PlansFilterBar({
           onChange={(e) => onQueryChange(e.target.value)}
         />
       </div>
-
-      <select
-        className={styles.select}
-        aria-label={t("gradeLabel")}
-        value={filters.grade ?? ""}
-        onChange={(e) => commit("grade", e.target.value)}
-      >
-        <option value="">{t("allGrades")}</option>
-        {options.grades.map((g) => (
-          <option key={g} value={g}>
-            {g}
-          </option>
-        ))}
-      </select>
 
       <select
         className={styles.select}

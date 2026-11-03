@@ -1,0 +1,129 @@
+/* GradeTermNav — grade pills over term tabs. Tokens from globals.css.
+   Mobile-first: both rows scroll sideways inside themselves (never the page). */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  min-width: 0;
+}
+
+.grades,
+.terms {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0 0 0.25rem;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.grades > li,
+.terms > li {
+  flex: 0 0 auto;
+}
+
+/* ── Grade pills ─────────────────────────────────────────────────────────── */
+
+.grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--electric-blue);
+  background: var(--white);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--transition, 0.15s ease), background 0.15s ease;
+}
+
+.grade:hover {
+  border-color: var(--light-blue);
+}
+
+.grade[aria-current="page"] {
+  color: var(--white);
+  background: var(--electric-blue);
+  border-color: var(--electric-blue);
+}
+
+.grade[data-empty]:not([aria-current="page"]) {
+  color: var(--ink-muted);
+}
+
+/* ── Term tabs ───────────────────────────────────────────────────────────── */
+
+.terms {
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 0;
+}
+
+.term {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 0.875rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+
+.term:hover {
+  color: var(--electric-blue);
+}
+
+.term[aria-current="page"] {
+  color: var(--electric-blue);
+  border-bottom-color: var(--gold);
+}
+
+.term[data-empty]:not([aria-current="page"]) {
+  color: var(--ink-faint);
+}
+
+/* ── Count badge ─────────────────────────────────────────────────────────── */
+
+.count {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--electric-blue);
+  background: var(--light-blue-30);
+  border-radius: 999px;
+}
+
+.grade[aria-current="page"] .count {
+  color: var(--electric-blue);
+  background: var(--white);
+}
+
+.grade:focus-visible,
+.term:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring, 0 0 0 3px var(--light-blue-30));
+}
+
+/* Wide screens: wrap the grade pills instead of scrolling them. */
+@media (min-width: 640px) {
+  .grades {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}

@@ -40,6 +40,7 @@
  * @see ./pdfTables.ts — coordinate → table reconstruction for PDFs.
  * @see ./aiExtract.ts — the model-backed fallback when no rule matches.
  */
+import { findGradeInText, gradeLabel, normalizeGradeLabel } from "@/lib/naming/grade";
 import mammoth from "mammoth";
 import Papa from "papaparse";
 
@@ -225,13 +226,14 @@ export function parseTitleLine(text: string): TitleLineMeta {
   const meta: TitleLineMeta = {};
   const clean = cleanCell(text);
 
-  // "GRADE 4 MATHEMATICS TERM 1A …" — the STANDARD week title.
+  // "GRADE 4 MATHEMATICS TERM 1A …" — the STANDARD week title; kindergarten
+  // titles read "KG1 MATHEMATICS TERM 1A …" / "KG 2 LITERACY TERM 1B …".
   const gradeSubjectTerm = clean.match(
-    /\bgrade\s*(\d+)\s*[:\-–—]?\s*(.*?)\s*\bterm\s*([12]\s*[ab])\b/i,
+    /\b(grade\s*\d+|k\.?\s*g\.?\s*[12])\s*[:\-–—]?\s*(.*?)\s*\bterm\s*([12]\s*[ab])\b/i,
   );
-  // "Grade 4 Science Schemes of Work 2026" — a document heading.
+  // "Grade 4 Science Schemes of Work 2026" / "KG1 Numeracy Scheme of Work".
   const gradeSubjectScheme = clean.match(
-    /\bgrade\s*(\d+)\s*[:\-–—]?\s*(.+?)\s*\bschemes?\s+of\s+work\b/i,
+    /\b(grade\s*\d+|k\.?\s*g\.?\s*[12])\s*[:\-–—]?\s*(.+?)\s*\bschemes?\s+of\s+work\b/i,
   );
   // Kiswahili: the class is "darasa la 5", the term "muhula wa 1A", and the
   // subject sits either before the class ("— KISWAHILI DARASA LA 5 MUHULA WA
@@ -256,12 +258,12 @@ export function parseTitleLine(text: string): TitleLineMeta {
 
   const hit = gradeSubjectTerm ?? gradeSubjectScheme;
   if (hit) {
-    meta.grade = `Grade ${hit[1]}`;
+    meta.grade = normalizeGradeLabel(hit[1] ?? "");
     const subject = (hit[2] ?? "").replace(/[|:\-–—]+$/g, "").trim();
     if (subject) meta.subject = titleCaseWords(subject);
   } else if (!meta.grade) {
-    const grade = clean.match(/\bgrade\s*(\d+)\b/i);
-    if (grade) meta.grade = `Grade ${grade[1]}`;
+    const found = findGradeInText(clean);
+    if (found) meta.grade = gradeLabel(found.gradeNum);
   }
   const term = clean.match(/\bterm\s*([12]\s*[ab])\b/i);
   if (term) meta.term = (term[1] ?? "").replace(/\s+/g, "").toUpperCase();
@@ -555,8 +557,8 @@ function parseMetaTable(
           break;
         case "grade": {
           if (meta.grade === undefined) {
-            const n = firstInt(value);
-            meta.grade = n != null ? `Grade ${n}` : value;
+            // "2", "Grade 2", "KG 1", "Darasa la 3" → canonical label.
+            meta.grade = normalizeGradeLabel(value);
           }
           break;
         }

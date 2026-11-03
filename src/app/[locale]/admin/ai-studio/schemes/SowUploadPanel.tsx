@@ -9,7 +9,7 @@
  * itself unmounts there; the always-mounted parent does not).
  */
 import { useState, useTransition } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
 import {
@@ -28,6 +28,7 @@ import styles from "./SchemesClient.module.css";
 export function useSowUpload() {
   const t = useTranslations("lpManage.schemes");
   const router = useRouter();
+  const pathname = usePathname();
 
   const [previewRows, setPreviewRows] = useState<ParsedSowRow[] | null>(null);
   const [previewHeader, setPreviewHeader] = useState<SchemeHeaderContext | null>(null);
@@ -127,7 +128,13 @@ export function useSowUpload() {
       setPreviewStats(null);
       setPreviewMetaExtra(null);
       setUploadFile(null);
-      router.refresh();
+      // Open the grade/term the new scheme was filed under — it may not be
+      // the one on screen. (A navigation re-renders the server list too.)
+      if (result.gradeToken && result.term) {
+        router.replace(`${pathname}?grade=${result.gradeToken}&term=${result.term}`);
+      } else {
+        router.refresh();
+      }
     });
   }
 
@@ -173,7 +180,7 @@ export default function SowUploadPanel({
   } = upload;
 
   return (
-    <div className={styles.panel}>
+    <div className={styles.panel} id="sow-upload">
       <h2 className={styles.panelTitle}>{t("uploadHeading")}</h2>
 
       <label className={styles.fieldLabel}>

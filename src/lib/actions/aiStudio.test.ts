@@ -130,7 +130,7 @@ describe("savePlanStructured — grade & subject normalisation", () => {
   it("saves a subject with punctuation (a real KG1 scheme) instead of rejecting it", async () => {
     const res = await savePlanStructured(
       VALID_PLAN,
-      { grade: "G1", subject: "Numeracy, Science & ICT", term: "1A", week: 1, lesson: 1 },
+      { grade: "KG1", subject: "Numeracy, Science & ICT", term: "1A", week: 1, lesson: 1 },
       { publish: false },
     );
     expect(res.ok).toBe(true);
@@ -138,13 +138,13 @@ describe("savePlanStructured — grade & subject normalisation", () => {
       .select()
       .from(lessonPlans)
       .where(eq(lessonPlans.id, res.planId!));
-    expect(row!.filename).toBe("G1_NumeracyScienceAndICT_T1a_W1_L1");
+    // Filed as KG1 — never as Grade 1 (G1), and sorted before it.
+    expect(row!.filename).toBe("KG1_NumeracyScienceAndICT_T1a_W1_L1");
+    expect(row!.grade).toBe("KG1");
+    expect(row!.gradeNum).toBe(-2);
   });
 
-  it("rejects a grade label that cannot become G<n> instead of saving GNaN", async () => {
-    // A raw SOW label like "Grade 2" is not a valid grade token here: callers
-    // normalise before saving (321af50), and the filename parse guard makes
-    // sure a bad token fails loudly instead of persisting a "GNaN" filename.
+  it("normalises a grade label like \"Grade 2\" to its G2 token", async () => {
     const res = await savePlanStructured(VALID_PLAN, {
       grade: "Grade 2",
       subject: "Arithmetic",
@@ -152,9 +152,27 @@ describe("savePlanStructured — grade & subject normalisation", () => {
       week: 1,
       lesson: 1,
     });
-    expect(res.ok).toBe(false);
-    expect(res.error).toBe("invalid-input");
-    expect(res.message).toContain("does not match Grade_Subject_Term_Week_Lesson");
+    expect(res.ok).toBe(true);
+    const [row] = await db
+      .select()
+      .from(lessonPlans)
+      .where(eq(lessonPlans.id, res.planId!));
+    expect(row!.filename).toBe("G2_Arithmetic_T1a_W1_L1");
+  });
+
+  it("rejects a grade it cannot read instead of saving a bogus token", async () => {
+    for (const grade of ["Grade", "G0", "KG3", "2024"]) {
+      const res = await savePlanStructured(VALID_PLAN, {
+        grade,
+        subject: "Arithmetic",
+        term: "1a",
+        week: 1,
+        lesson: 1,
+      });
+      expect(res.ok, grade).toBe(false);
+      expect(res.error).toBe("invalid-input");
+      expect(res.message).toContain("Unrecognised grade");
+    }
   });
 });
 

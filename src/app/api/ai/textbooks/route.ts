@@ -23,6 +23,7 @@ import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { textbooks } from "@/lib/db/schema";
 import { getStorage } from "@/lib/storage";
+import { parseGradeNum } from "@/lib/naming/grade";
 import { textbookIngest } from "@/lib/ai/workflows/textbookIngest";
 
 /** Force the Node.js runtime — do not run on the edge. */
@@ -30,9 +31,9 @@ export const runtime = "nodejs";
 /** Never cache; every request starts a fresh upload. */
 export const dynamic = "force-dynamic";
 
-/** Derive numeric grade from a grade string (e.g. "Grade 7" → 7). */
+/** Numeric grade from a grade string ("Grade 7" → 7, "KG1" → -2), else 0. */
 function deriveGradeNum(grade: string): number {
-  return parseInt(grade.replace(/\D/g, ""), 10) || 0;
+  return parseGradeNum(grade) ?? 0;
 }
 
 export async function POST(req: Request): Promise<Response> {

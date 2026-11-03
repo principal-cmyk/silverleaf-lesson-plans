@@ -11,6 +11,9 @@ import { and, asc, count, eq, ilike, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { lessonPlans, type PlanStatus } from "@/lib/db/schema";
+import { parseGradeParam, parseTermParam, type GradeTermItem } from "@/lib/admin/gradeTerm";
+import type { Term } from "@/lib/naming/constants";
+import { gradeToken } from "@/lib/naming/grade";
 
 /** Rows loaded per page / per "Show more". */
 export const PAGE_SIZE = 12;
@@ -30,7 +33,10 @@ export interface PlanRow {
 
 /** Active filters. All optional — an absent key means "no constraint". */
 export interface PlanFilters {
+  /** Grade token (`KG1`, `G4`) — normalised from any accepted spelling. */
   grade?: string;
+  /** Term token (`1a` … `2b`). */
+  term?: Term;
   subject?: string;
   status?: PlanStatus;
   q?: string;
@@ -61,8 +67,11 @@ export function parsePlanFilters(
 
   const status = one(raw.status);
 
+  const gradeNum = parseGradeParam(raw.grade);
+
   return {
-    grade: one(raw.grade),
+    grade: gradeNum != null ? gradeToken(gradeNum) : undefined,
+    term: parseTermParam(raw.term) ?? undefined,
     subject: one(raw.subject),
     status: status === "draft" || status === "published" ? status : undefined,
     q: one(raw.q),
@@ -72,7 +81,10 @@ export function parsePlanFilters(
 /** Build the combined WHERE clause for a filter set (or undefined for none). */
 function whereFor(filters: PlanFilters): SQL | undefined {
   const conds: SQL[] = [];
-  if (filters.grade) conds.push(eq(lessonPlans.grade, filters.grade));
+  // By number, not label: one grade, however its token was spelled.
+  const gradeNum = parseGradeParam(filters.grade);
+  if (gradeNum != null) conds.push(eq(lessonPlans.gradeNum, gradeNum));
+  if (filters.term) conds.push(eq(lessonPlans.term, filters.term));
   if (filters.subject) conds.push(eq(lessonPlans.subject, filters.subject));
   if (filters.status) conds.push(eq(lessonPlans.status, filters.status));
   // `search_text` is already lowercased; ilike keeps it case-insensitive anyway.
@@ -157,4 +169,22 @@ export async function fetchPlanFilterOptions(): Promise<PlanFilterOptions> {
     grades: grades.map((g) => g.grade),
     subjects: subjects.map((s) => s.subject),
   };
+}
+
+/**
+ * Plan counts per (grade, term) for the grade bar and term tabs, honouring the
+ * subject / status / search filters but NOT grade or term — so each tab says
+ * how many plans picking it would show.
+ */
+export async function fetchGradeTermCounts(filters: PlanFilters): Promise<GradeTermItem[]> {
+  const rows = await db
+    .select({
+      gradeNum: lessonPlans.gradeNum,
+      termOrdinal: lessonPlans.termOrdinal,
+      count: count(),
+    })
+    .from(lessonPlans)
+    .where(whereFor({ ...filters, grade: undefined, term: undefined }))
+    .groupBy(lessonPlans.gradeNum, lessonPlans.termOrdinal);
+  return rows.map((r) => ({ ...r, count: Number(r.count) }));
 }

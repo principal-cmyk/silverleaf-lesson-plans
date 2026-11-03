@@ -14,6 +14,12 @@ export type SchemeRow = {
   term: string;
   year?: string | null;
   rowCount: number;
+  /** Grade number (KG1 = -2, KG2 = -1, Grade N = N) — groups the list. */
+  gradeNum: number;
+  /** Term ordinal 1–4 (1A…2B); 0 when the stored term is unrecognised. */
+  termOrdinal: number;
+  /** Lesson rows that already have a saved lesson plan. */
+  plannedCount: number;
 };
 
 export type SowLesson = {

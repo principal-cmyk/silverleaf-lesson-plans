@@ -29,6 +29,7 @@ import { applyKnownIdentifier } from "@/lib/ai/lessonPlan/identifier";
 import { validateLessonPlan } from "@/lib/ai/lessonPlan/validate";
 import { renderLessonMarkdown } from "@/lib/ai/lessonPlan/renderMarkdown";
 import { buildFilename, subjectToken } from "@/lib/naming/format";
+import { gradeToken, parseGradeNum } from "@/lib/naming/grade";
 import { parse } from "@/lib/naming/parse";
 import { buildSearchText } from "@/lib/lesson/searchText";
 
@@ -164,9 +165,15 @@ export async function savePlanStructured(
   }
 
   // Normalise naming parts for filename derivation.
-  // Grade: ensure leading "G" (bare digits → "G<n>").
-  const gradeRaw = ctx.grade.trim();
-  const grade = /^\d/.test(gradeRaw) ? `G${gradeRaw}` : gradeRaw;
+  // Grade: any accepted form ("4", "G4", "Grade 4", "KG1") → its token
+  // ("G4", "KG1"). Rejected loudly for the same reason as the term below.
+  const gradeNum = parseGradeNum(ctx.grade);
+  if (gradeNum == null) {
+    return actionFailure("invalid-input", {
+      message: `Unrecognised grade "${ctx.grade}" — expected KG1, KG2 or G1–G12.`,
+    });
+  }
+  const grade = gradeToken(gradeNum);
 
   // Term: lowercase + validate against TERM_VALUES. An unrecognised term is
   // rejected loudly — silently defaulting would file the whole plan (slug,

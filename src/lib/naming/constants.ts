@@ -5,7 +5,7 @@
  * Filenames look like `G7_Math_T1a_W1_L1` — order is
  * `Grade_Subject_Term_Week_Lesson`, underscore-separated:
  *
- *   Grade   — `G` followed by 1–2 digits         (e.g. G7, G12)
+ *   Grade   — `G` + 1–2 digits, or `KG1`/`KG2`    (e.g. G7, G12, KG1)
  *   Subject — a single TitleCase token of letters (e.g. Math, Kiswahili)
  *   Term    — `T` followed by one of 1a,1b,2a,2b  (e.g. T1a)
  *   Week    — `W` followed by digits              (weeks restart each term)
@@ -61,10 +61,12 @@ export const NAMING = {
    * Built via `new RegExp` (not a literal) so the named groups compile under
    * this project's `target: ES2017` — named capture is fully supported at
    * runtime on Node/V8, only the literal syntax is gated by the TS target.
-   * Source pattern: `^G(?<grade>\d{1,2})_(?<subject>[A-Za-z]+)_T(?<term>[12][ab])_W(?<week>\d+)_L(?<lesson>\d+)$`
+   * The `grade` group captures the whole token (`G7`, `KG1`); convert it with
+   * `parseGradeNum` from ./grade.ts.
+   * Source pattern: `^(?<grade>KG[12]|G\d{1,2})_(?<subject>[A-Za-z]+)_T(?<term>[12][ab])_W(?<week>\d+)_L(?<lesson>\d+)$`
    */
   regex: new RegExp(
-    "^G(?<grade>\\d{1,2})_(?<subject>[A-Za-z]+)_T(?<term>[12][ab])_W(?<week>\\d+)_L(?<lesson>\\d+)$",
+    "^(?<grade>KG[12]|G\\d{1,2})_(?<subject>[A-Za-z]+)_T(?<term>[12][ab])_W(?<week>\\d+)_L(?<lesson>\\d+)$",
   ),
   termOrdinal: TERM_ORDINAL,
   ordinalTerm: ORDINAL_TERM,

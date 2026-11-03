@@ -412,6 +412,16 @@ describe("parseTitleLine", () => {
   it("never takes the class digit as the week in a Kiswahili title", () => {
     expect(parseTitleLine("SILVERLEAF ACADEMY — KISWAHILI DARASA LA 5 MUHULA WA 1A").week).toBeUndefined();
   });
+
+  it("reads a kindergarten STANDARD title as KG1, never Grade 1", () => {
+    expect(
+      parseTitleLine("SILVERLEAF ACADEMY — KG1 NUMERACY TERM 2A | WEEK 4: COUNTING TO 10"),
+    ).toEqual({ grade: "KG1", subject: "Numeracy", term: "2A", week: 4 });
+    expect(parseTitleLine("KG 2 Literacy Schemes of Work 2026")).toEqual({
+      grade: "KG2",
+      subject: "Literacy",
+    });
+  });
 });
 
 describe("splitLessonCell", () => {

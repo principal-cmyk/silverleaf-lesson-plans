@@ -1,14 +1,17 @@
 import { getTranslations } from "next-intl/server";
 
 import { requireAdmin } from "@/lib/auth";
+import { gradeCounts, parseGradeParam, termCounts } from "@/lib/admin/gradeTerm";
 import {
   countPlans,
+  fetchGradeTermCounts,
   fetchPlanFilterOptions,
   fetchPlansPage,
   PAGE_SIZE,
   parsePlanFilters,
 } from "@/lib/admin/plansQuery";
 import PlansBrowser from "@/components/admin/PlansBrowser";
+import GradeTermNav from "@/components/admin/GradeTermNav";
 import PlansFilterBar from "@/components/admin/PlansFilterBar";
 
 /** Live, authenticated data — render on demand (never prerender/cache). */
@@ -17,7 +20,10 @@ export const dynamic = "force-dynamic";
 /**
  * Admin plans listing.
  *
- * Filterable (grade / subject / status / free-text) via URL query params and
+ * Grouped by a grade bar (KG1 … Grade 6) and term tabs (1A … 2B) — see
+ * {@link GradeTermNav}, shared with AI Studio → Schemes of Work — and further
+ * filterable (subject / status / free-text); all state lives in URL params,
+ * and the list is
  * ordered by the canonical naming sort (grade → subject → term → week → lesson).
  * Renders only the first {@link PAGE_SIZE} rows; the client {@link PlansBrowser}
  * grows the list in place via its "Show more" control, while {@link PlansTable}
@@ -33,11 +39,13 @@ export default async function AdminPlansPage({
 
   const filters = parsePlanFilters(await searchParams);
 
-  const [options, total, rows] = await Promise.all([
+  const [options, total, rows, groups] = await Promise.all([
     fetchPlanFilterOptions(),
     countPlans(filters),
     fetchPlansPage(filters, { offset: 0, limit: PAGE_SIZE }),
+    fetchGradeTermCounts(filters),
   ]);
+  const gradeNum = parseGradeParam(filters.grade);
 
   const initialHasMore = total > rows.length;
   // Re-key the browser on the active filters so a filter change resets the
@@ -61,6 +69,14 @@ export default async function AdminPlansPage({
           {t("count", { count: total })}
         </span>
       </div>
+
+      <GradeTermNav
+        grades={gradeCounts(groups)}
+        terms={termCounts(groups, gradeNum)}
+        grade={gradeNum}
+        term={filters.term ?? null}
+        allowAll
+      />
 
       <PlansFilterBar options={options} filters={filters} />
 

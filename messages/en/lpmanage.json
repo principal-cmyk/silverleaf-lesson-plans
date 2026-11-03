@@ -51,14 +51,23 @@
         "subject": "Subject",
         "term": "Term",
         "rows": "Rows",
-        "actions": "Actions"
+        "actions": "Actions",
+        "plans": "Lesson plans"
       },
       "view": "View",
       "edit": "Edit",
       "cancel": "Cancel",
       "save": "Save",
       "errorGeneric": "Something went wrong.",
-      "aiExtractedNote": "Rows mapped by AI ({weeks} weeks found) — the file is not in a Silverleaf template, so check each column before saving."
+      "aiExtractedNote": "Rows mapped by AI ({weeks} weeks found) — the file is not in a Silverleaf template, so check each column before saving.",
+      "groupHeading": "{grade} · Term {term}",
+      "emptyGroup": "No schemes of work for {grade}, Term {term} yet.",
+      "uploadOne": "Upload a scheme",
+      "plannedOf": "{planned} of {total} lessons",
+      "plannedPct": "{pct}% of lessons have a lesson plan",
+      "openPlans": "Lesson plans →",
+      "missingHeading": "No scheme yet for Term {term} in these subjects:",
+      "unfiledHeading": "These schemes have a grade or term the list cannot read. Open one to check it:"
     },
     "textbooks": {
       "heading": "Textbooks",

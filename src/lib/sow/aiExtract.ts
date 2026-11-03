@@ -28,6 +28,7 @@ import "server-only";
  * @see ./chunk.ts — how the text is cut into requests.
  * @see ./parse.ts — the {@link ParsedSow} shape this produces.
  */
+import { normalizeGradeLabel } from "@/lib/naming/grade";
 import { generateObject } from "ai";
 import { z } from "zod";
 
@@ -101,7 +102,7 @@ const SYSTEM =
 
 const FIRST_CHUNK_NOTE =
   "This is the FIRST part of the document. Also fill `scheme` with the " +
-  "scheme-level facts if the text names them: title, grade (as 'Grade N'), " +
+  "scheme-level facts if the text names them: title, grade (as 'Grade N', or 'KG1' / 'KG2' for kindergarten), " +
   "subject, term (one of 1A, 1B, 2A, 2B), year, main competence. Use null " +
   "for anything not stated.";
 
@@ -152,8 +153,8 @@ function toParsedMeta(m: z.infer<typeof metaSchema> | null): ParsedSowMeta {
   meta.title = clean(m.title);
   const grade = clean(m.grade);
   if (grade) {
-    const n = grade.match(/\d+/);
-    meta.grade = n ? `Grade ${n[0]}` : grade;
+    // "Grade 4" / "4" / "KG1" → canonical label; KG must not become "Grade 1".
+    meta.grade = normalizeGradeLabel(grade);
   }
   meta.subject = clean(m.subject);
   const term = clean(m.term);

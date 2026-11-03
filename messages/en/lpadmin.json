@@ -215,6 +215,14 @@
           "failed": "Failed"
         }
       }
+    },
+    "gradeNav": {
+      "gradesLabel": "Grades",
+      "termsLabel": "Terms",
+      "allGrades": "All grades",
+      "allTerms": "All terms",
+      "grade": "Grade {value}",
+      "term": "Term {value}"
     }
   }
 }

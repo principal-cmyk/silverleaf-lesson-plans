@@ -2,6 +2,11 @@ import { getTranslations } from "next-intl/server";
 
 import { requireAdmin } from "@/lib/auth";
 import { listSchemes } from "@/lib/actions/schemes";
+import {
+  parseGradeParam,
+  parseTermParam,
+  resolveGradeTerm,
+} from "@/lib/admin/gradeTerm";
 
 import SchemesClient from "./SchemesClient";
 
@@ -11,15 +16,26 @@ export const dynamic = "force-dynamic";
 /**
  * Admin Schemes of Work listing page.
  *
- * Server side: gate with requireAdmin, load schemes list, pass to client.
- * All mutations (upload, create, edit, delete) live in the client component.
+ * Server side: gate with requireAdmin, load schemes list, resolve which
+ * grade + term to show from `?grade=&term=` (defaulting to the first grade and
+ * term that hold schemes), pass to client. The client groups the list
+ * Grade → Term → Subject. All mutations (upload, create, edit, delete) live in
+ * the client component.
  */
-export default async function AdminSchemesPage() {
+export default async function AdminSchemesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requireAdmin();
   const t = await getTranslations("lpManage.schemes");
 
-  const result = await listSchemes();
+  const [result, params] = await Promise.all([listSchemes(), searchParams]);
   const schemes = result.schemes ?? [];
+  const { grade, term } = resolveGradeTerm(schemes, {
+    grade: parseGradeParam(params.grade),
+    term: parseTermParam(params.term),
+  });
 
   return (
     <div>
@@ -45,7 +61,7 @@ export default async function AdminSchemesPage() {
         </p>
       ) : null}
 
-      <SchemesClient initialSchemes={schemes} />
+      <SchemesClient initialSchemes={schemes} grade={grade} term={term} />
     </div>
   );
 }

@@ -32,6 +32,7 @@
  */
 import type { StructuredLessonPlan } from "@/lib/ai/lessonPlan/structuredSchema";
 import { exitTicketLines, stepLines } from "@/lib/lesson/planText";
+import { gradeLabel, parseGradeNum } from "@/lib/naming/grade";
 
 import type { ComplianceForm, ComplianceStepRow } from "./form";
 
@@ -50,14 +51,16 @@ function join(items: string[], sep = "; "): string {
 }
 
 /**
- * The bare grade number for the form's "Grade N".
+ * The class name the form prints: "Grade 2", or "KG1" for kindergarten.
  *
  * `identifier.grade` is inconsistent across the corpus — the seeded plans store
  * "G2" while the fixture stores "1" — and the form must print "Grade 2", never
- * "Grade G2", so strip a leading G either way.
+ * "Grade G2". Kindergarten must print "KG1", never "Grade KG1" or "Grade 1".
+ * Text that names no grade is printed as written.
  */
-function gradeNumber(grade: string): string {
-  return grade.trim().replace(/^G/i, "");
+function gradeClassName(grade: string): string {
+  const n = parseGradeNum(grade);
+  return n != null ? gradeLabel(n) : `Grade ${grade.trim().replace(/^G/i, "")}`;
 }
 
 /**
@@ -89,7 +92,7 @@ export function toComplianceForm(
 ): ComplianceForm {
   const id = plan.identifier;
   const ts = plan.teaching_sequence;
-  const grade = gradeNumber(id.grade);
+  const className = gradeClassName(id.grade);
   const minutes = durationMinutes ?? DEFAULT_DURATION_MINUTES;
 
   const steps: ComplianceStepRow[] = [
@@ -141,13 +144,13 @@ export function toComplianceForm(
     schoolName: SCHOOL_NAME,
     mainCompetence: id.main_competence,
     subject: id.subject,
-    className: `Grade ${grade}`,
+    className,
     time: `${minutes} minutes`,
     specificCompetence: id.specific_competence,
     mainActivity: id.title,
     specificActivity: join(plan.success_criteria),
     teachingAids: join(plan.materials_and_prep),
-    reference: `Tanzania Institute of Education (TIE) — Grade ${grade} ${id.subject} Scheme of Work`,
+    reference: `Tanzania Institute of Education (TIE) — ${className} ${id.subject} Scheme of Work`,
     steps,
   };
 }

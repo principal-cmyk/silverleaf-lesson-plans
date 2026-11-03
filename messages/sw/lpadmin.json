@@ -215,6 +215,14 @@
           "failed": "Imeshindikana"
         }
       }
+    },
+    "gradeNav": {
+      "gradesLabel": "Madarasa",
+      "termsLabel": "Mihula",
+      "allGrades": "Madarasa yote",
+      "allTerms": "Mihula yote",
+      "grade": "Darasa {value}",
+      "term": "Muhula {value}"
     }
   }
 }

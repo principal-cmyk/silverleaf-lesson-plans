@@ -321,3 +321,83 @@
   color: var(--success);
   font-size: 0.875rem;
 }
+
+/* ── Grade → Term → Subject list ─────────────────────────────────────────── */
+
+.groupHeading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--electric-blue);
+  margin: 0 0 0.75rem;
+}
+
+.subjectName {
+  display: block;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.subjectTitle {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+}
+
+.coverage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 7rem;
+}
+
+.coverageTrack {
+  display: block;
+  height: 6px;
+  background: var(--track, var(--light-blue-30));
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.coverageFill {
+  display: block;
+  height: 100%;
+  background: var(--success, var(--electric-blue));
+  border-radius: 999px;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.linkSmall {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--electric-blue);
+  white-space: nowrap;
+}
+
+.missing {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--card-border);
+  border-radius: var(--radius-sm);
+  background: var(--gold-15, var(--light-blue-30));
+}
+
+.missingTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.4rem;
+}
+
+.missingList {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: var(--ink);
+}

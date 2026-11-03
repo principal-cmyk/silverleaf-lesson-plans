@@ -36,11 +36,13 @@ import {
   type SchemeLessonRow,
   type SchemeSummary,
 } from "./types";
+import { gradeToken, isValidGradeNum } from "@/lib/naming/grade";
 import styles from "./Studio.module.css";
 
 const TERM_OPTIONS = ["1a", "1b", "2a", "2b"] as const;
 
-const GRADE_OPTIONS = Array.from({ length: 12 }, (_, i) => `G${i + 1}`);
+/** KG1, KG2, then G1–G12 — the grade tokens a plan filename accepts. */
+const GRADE_OPTIONS = [-2, -1, ...Array.from({ length: 12 }, (_, i) => i + 1)].map(gradeToken);
 
 export default function AiStudioClient({
   apiKeyConfigured,
@@ -101,7 +103,7 @@ export default function AiStudioClient({
       const termToken = scheme.term.trim().toLowerCase();
       setCtx((prev) => ({
         ...prev,
-        grade: scheme.gradeNum ? `G${scheme.gradeNum}` : prev.grade,
+        grade: isValidGradeNum(scheme.gradeNum) ? gradeToken(scheme.gradeNum) : prev.grade,
         subject: scheme.subject || prev.subject,
         term: (TERM_OPTIONS as readonly string[]).includes(termToken)
           ? termToken

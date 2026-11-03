@@ -8,12 +8,13 @@
  * @see ./format.ts for the inverse (`buildFilename`).
  */
 import { NAMING, type Term, TERM_ORDINAL } from "./constants";
+import { parseGradeNum } from "./grade";
 
 /** Structured fields extracted from a valid filename. */
 export interface ParsedFilename {
-  /** Grade token as written, e.g. `G7`. */
+  /** Grade token as written, e.g. `G7`, `KG1`. */
   grade: string;
-  /** Numeric grade, e.g. `7`. */
+  /** Numeric grade, e.g. `7` (KG1 = -2, KG2 = -1 — see ./grade.ts). */
   gradeNum: number;
   /** Subject token (TitleCase as written), e.g. `Math`. */
   subject: string;
@@ -70,6 +71,13 @@ export function parse(filename: string): ParseResult {
     lesson: string;
   };
 
+  // The regex guarantees the grade token (G1–G99 / KG1 / KG2); the range check
+  // rejects G0 and G13+.
+  const gradeNum = parseGradeNum(grade);
+  if (gradeNum == null) {
+    return { ok: false, reason: `"${grade}" is not a valid grade (KG1, KG2, G1–G12)` };
+  }
+
   // The regex guarantees `term` is one of the four valid tokens.
   const termKey = term as Term;
   const slug = base.toLowerCase().split(NAMING.separator).join("-");
@@ -77,8 +85,8 @@ export function parse(filename: string): ParseResult {
   return {
     ok: true,
     value: {
-      grade: `G${grade}`,
-      gradeNum: Number(grade),
+      grade,
+      gradeNum,
       subject,
       term: termKey,
       termOrdinal: TERM_ORDINAL[termKey],
