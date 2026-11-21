@@ -230,7 +230,24 @@
         "uploadDone": "Faili {count} za mipango ya somo zimehifadhiwa. Walimu wanaweza kuzipakua sasa.",
         "uploadPartial": "Zimehifadhiwa {stored} kati ya {total}. Baadhi zimeshindwa — jaribu tena."
       },
-      "termDownloadsLink": "Upakuaji wa muhula kwa walimu"
+      "termDownloadsLink": "Upakuaji wa muhula kwa walimu",
+      "byGrade": {
+        "heading": "Pakua faili moja kwa kila darasa",
+        "hint": "Hupakua Muhula {term} darasa moja kwa wakati, ZIP tofauti kwa kila darasa (hutumia vichujio vya somo na hali vilivyo chini). Acha kichupo hiki wazi hadi kimalize.",
+        "needTerm": "Chagua muhula hapo juu ili kuupakua darasa moja kwa wakati.",
+        "forms": "Fomu za serikali",
+        "lessonPlans": "Mipango ya somo",
+        "slides": "Slaidi",
+        "stop": "Simamisha",
+        "count": "{count, plural, one {Mpango #} other {Mipango #}}",
+        "status": {
+          "waiting": "Inasubiri",
+          "running": "Inafanya kazi…",
+          "done": "Imepakuliwa",
+          "failed": "Imeshindwa",
+          "stopped": "Imesimamishwa"
+        }
+      }
     },
     "gradeNav": {
       "gradesLabel": "Madarasa",

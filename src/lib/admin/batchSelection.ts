@@ -3,7 +3,9 @@ import "server-only";
 /**
  * Batch selections (table `batch_selections`) — save the plan ids an admin
  * selected and read them back for a batch download page, which takes either
- * `?sel=<selection id>` (any size) or the older `?ids=a,b,c` (short lists).
+ * `?sel=<selection id>` (any size), the older `?ids=a,b,c` (short lists), or
+ * the plans list's own filters (`?grade=G2&term=1a&subject=Math`), which is how
+ * the "download by grade" run names a grade.
  */
 import { eq, lt } from "drizzle-orm";
 
@@ -11,6 +13,7 @@ import { db } from "@/lib/db";
 import { batchSelections } from "@/lib/db/schema";
 
 import { parseGovernmentFormIds } from "./governmentForms";
+import { fetchPlanIds, parsePlanFilters } from "./plansQuery";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -38,5 +41,7 @@ export async function resolveBatchIds(searchParams: Params): Promise<string[]> {
       .limit(1);
     return row ? parseGovernmentFormIds(row.planIds.join(",")) : [];
   }
-  return parseGovernmentFormIds(searchParams.ids);
+  const ids = parseGovernmentFormIds(searchParams.ids);
+  if (ids.length > 0 || !(searchParams.grade || searchParams.term)) return ids;
+  return fetchPlanIds(parsePlanFilters(searchParams));
 }

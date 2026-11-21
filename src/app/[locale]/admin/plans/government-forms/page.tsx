@@ -8,6 +8,7 @@ import { lessonPlans } from "@/lib/db/schema";
 import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
 import { toComplianceForm } from "@/lib/compliance/mapPlan";
 import { resolveBatchIds } from "@/lib/admin/batchSelection";
+import BatchAutoRun from "@/components/admin/BatchAutoRun";
 import ComplianceDocument, {
   COMPLIANCE_STAGE_WIDTH,
 } from "@/components/lesson/document/ComplianceDocument";
@@ -86,6 +87,7 @@ export default async function GovernmentFormsPage({
 
   return (
     <div>
+      <BatchAutoRun />
       <p className={styles.back}>
         <Link href="/admin/plans">{t("back")}</Link>
       </p>

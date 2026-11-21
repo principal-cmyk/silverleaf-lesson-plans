@@ -230,7 +230,24 @@
         "uploadDone": "Stored {count} lesson plan files. Teachers can download them now.",
         "uploadPartial": "Stored {stored} of {total}. Some files failed — run it again."
       },
-      "termDownloadsLink": "Term downloads for teachers"
+      "termDownloadsLink": "Term downloads for teachers",
+      "byGrade": {
+        "heading": "Download one file per grade",
+        "hint": "Downloads Term {term} one grade at a time, as a separate ZIP for each grade (uses the subject and status filters below). Keep this tab open until it finishes.",
+        "needTerm": "Choose a term above to download it one grade at a time.",
+        "forms": "Government forms",
+        "slides": "Slides",
+        "stop": "Stop",
+        "status": {
+          "waiting": "Waiting",
+          "running": "Working…",
+          "done": "Downloaded",
+          "failed": "Failed",
+          "stopped": "Stopped"
+        },
+        "lessonPlans": "Lesson plans",
+        "count": "{count, plural, one {# plan} other {# plans}}"
+      }
     },
     "gradeNav": {
       "gradesLabel": "Grades",

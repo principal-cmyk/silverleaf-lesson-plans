@@ -1,6 +1,9 @@
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
+import ByGradeDownloads, { type GradeRun } from "@/components/admin/ByGradeDownloads";
+import { TERM_ORDINAL } from "@/lib/naming/constants";
+import { gradeLabel, gradeToken } from "@/lib/naming/grade";
 
 import { requireAdmin } from "@/lib/auth";
 import { gradeCounts, parseGradeParam, termCounts } from "@/lib/admin/gradeTerm";
@@ -49,6 +52,15 @@ export default async function AdminPlansPage({
   ]);
   const gradeNum = parseGradeParam(filters.grade);
 
+  // Grades with plans in the chosen term (under the other filters), for the
+  // "download one file per grade" run.
+  const byGrade: GradeRun[] = filters.term
+    ? groups
+        .filter((g) => g.termOrdinal === TERM_ORDINAL[filters.term!] && (g.count ?? 0) > 0)
+        .sort((a, b) => a.gradeNum - b.gradeNum)
+        .map((g) => ({ token: gradeToken(g.gradeNum), label: gradeLabel(g.gradeNum), count: g.count ?? 0 }))
+    : [];
+
   const initialHasMore = total > rows.length;
   // Re-key the browser on the active filters so a filter change resets the
   // accumulated "Show more" list back to the new first batch.
@@ -83,6 +95,16 @@ export default async function AdminPlansPage({
       />
 
       <PlansFilterBar options={options} filters={filters} />
+
+      <ByGradeDownloads
+        term={filters.term ?? null}
+        grades={byGrade}
+        query={Object.fromEntries(
+          Object.entries({ subject: filters.subject, status: filters.status, q: filters.q }).filter(
+            (e): e is [string, string] => Boolean(e[1]),
+          ),
+        )}
+      />
 
       <PlansBrowser
         key={filterKey}

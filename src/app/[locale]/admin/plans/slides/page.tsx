@@ -8,6 +8,7 @@ import { lessonPlans, lessonSlideDecks } from "@/lib/db/schema";
 import { hasApiKey } from "@/lib/ai/model";
 import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
 import { resolveBatchIds } from "@/lib/admin/batchSelection";
+import BatchAutoRun from "@/components/admin/BatchAutoRun";
 import { slideDeckSchema } from "@/lib/slides/deckSchema";
 import { slidesFileName } from "@/lib/slides/fileName";
 import { contentHash } from "@/lib/slides/store";
@@ -101,6 +102,7 @@ export default async function SlidesDownloadPage({
 
   return (
     <div>
+      <BatchAutoRun />
       <p className={styles.back}>
         <Link href="/admin/plans">{t("back")}</Link>
       </p>

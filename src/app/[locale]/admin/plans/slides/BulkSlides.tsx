@@ -135,7 +135,14 @@ export default function BulkSlides({
   return (
     <div>
       <div className={styles.toolbar}>
-        <button type="button" className={styles.downloadButton} onClick={run} disabled={running}>
+        <button
+          type="button"
+          className={styles.downloadButton}
+          onClick={run}
+          disabled={running}
+          aria-busy={running}
+          data-batch-download
+        >
           {started && !running ? t("again") : t("download", { count: items.length })}
         </button>
         {started ? (

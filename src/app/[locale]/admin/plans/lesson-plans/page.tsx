@@ -10,6 +10,7 @@ import {
   type StructuredLessonPlan,
 } from "@/lib/ai/lessonPlan/structuredSchema";
 import { resolveBatchIds } from "@/lib/admin/batchSelection";
+import BatchAutoRun from "@/components/admin/BatchAutoRun";
 import LessonPlanDocument from "@/components/lesson/document/LessonPlanDocument";
 import PrintButton from "@/components/lesson/document/PrintButton";
 // Same page chrome as the batch government-forms page.
@@ -82,6 +83,7 @@ export default async function LessonPlansPdfPage({
 
   return (
     <div>
+      <BatchAutoRun />
       <p className={styles.back}>
         <Link href="/admin/plans">{t("back")}</Link>
       </p>

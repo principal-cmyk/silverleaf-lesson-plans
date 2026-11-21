@@ -408,6 +408,7 @@ export default function PrintButton({
         onClick={handleClick}
         disabled={busy}
         aria-busy={busy}
+        data-batch-download
       >
         {busy
           ? progress && progress.total > 1
