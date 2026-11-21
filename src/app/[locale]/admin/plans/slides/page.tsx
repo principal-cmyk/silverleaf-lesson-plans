@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { lessonPlans, lessonSlideDecks } from "@/lib/db/schema";
 import { hasApiKey } from "@/lib/ai/model";
 import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
-import { parseGovernmentFormIds } from "@/lib/admin/governmentForms";
+import { resolveBatchIds } from "@/lib/admin/batchSelection";
 import { slideDeckSchema } from "@/lib/slides/deckSchema";
 import { slidesFileName } from "@/lib/slides/fileName";
 import { contentHash } from "@/lib/slides/store";
@@ -36,7 +36,7 @@ export default async function SlidesDownloadPage({
 }) {
   await requireAdmin();
   const t = await getTranslations("lpAdmin.plans.slides");
-  const ids = parseGovernmentFormIds((await searchParams).ids);
+  const ids = await resolveBatchIds(await searchParams);
 
   const rows =
     ids.length === 0

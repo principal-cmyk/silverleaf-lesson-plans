@@ -9,7 +9,7 @@ import {
   structuredLessonPlanSchema,
   type StructuredLessonPlan,
 } from "@/lib/ai/lessonPlan/structuredSchema";
-import { parseGovernmentFormIds } from "@/lib/admin/governmentForms";
+import { resolveBatchIds } from "@/lib/admin/batchSelection";
 import LessonPlanDocument from "@/components/lesson/document/LessonPlanDocument";
 import PrintButton from "@/components/lesson/document/PrintButton";
 // Same page chrome as the batch government-forms page.
@@ -40,7 +40,7 @@ export default async function LessonPlansPdfPage({
 }) {
   await requireAdmin();
   const t = await getTranslations("lpAdmin.plans.lessonPlans");
-  const ids = parseGovernmentFormIds((await searchParams).ids);
+  const ids = await resolveBatchIds(await searchParams);
 
   const rows =
     ids.length === 0

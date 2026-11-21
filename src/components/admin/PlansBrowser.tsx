@@ -33,6 +33,7 @@ import { getPathname, useRouter } from "@/i18n/navigation";
 import {
   bulkDeletePlans,
   bulkSetPlanStatus,
+  createBatchSelection,
   listPlanIds,
   loadMorePlans,
 } from "@/lib/actions/adminPlans";
@@ -186,14 +187,23 @@ export default function PlansBrowser({
     // are already canonical), then any selected-but-unloaded ids.
     const loadedOrder = plans.map((p) => p.id).filter((id) => selected.has(id));
     const rest = [...selected].filter((id) => !loadedOrder.includes(id));
-    const href = getPathname({
-      href: {
-        pathname,
-        query: { ids: [...loadedOrder, ...rest].join(",") },
-      },
-      locale,
+    // Open the tab now, inside the click, so a popup blocker allows it; the
+    // selection is saved first and the tab is pointed at it afterwards.
+    const tab = window.open("", "_blank");
+    startBulk(async () => {
+      const res = await createBatchSelection([...loadedOrder, ...rest]);
+      if (!res.ok || !res.selectionId) {
+        tab?.close();
+        setBulkError(tb("error"));
+        return;
+      }
+      const href = getPathname({
+        href: { pathname, query: { sel: res.selectionId } },
+        locale,
+      });
+      if (tab) tab.location.href = href;
+      else window.open(href, "_blank");
     });
-    window.open(href, "_blank");
   }
 
   function onPlanStatusChanged(planId: string, status: PlanRow["status"]) {

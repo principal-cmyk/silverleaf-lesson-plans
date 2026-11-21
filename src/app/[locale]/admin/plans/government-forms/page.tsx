@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { lessonPlans } from "@/lib/db/schema";
 import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
 import { toComplianceForm } from "@/lib/compliance/mapPlan";
-import { parseGovernmentFormIds } from "@/lib/admin/governmentForms";
+import { resolveBatchIds } from "@/lib/admin/batchSelection";
 import ComplianceDocument, {
   COMPLIANCE_STAGE_WIDTH,
 } from "@/components/lesson/document/ComplianceDocument";
@@ -38,7 +38,7 @@ export default async function GovernmentFormsPage({
 }) {
   await requireAdmin();
   const t = await getTranslations("lpAdmin.plans.forms");
-  const ids = parseGovernmentFormIds((await searchParams).ids);
+  const ids = await resolveBatchIds(await searchParams);
 
   const rows =
     ids.length === 0

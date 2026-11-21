@@ -12,6 +12,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
+import { saveSelection } from "@/lib/admin/batchSelection";
 import { actionFailure, type ActionResult } from "@/lib/contracts";
 import { db } from "@/lib/db";
 import { lessonPlans, type PlanStatus } from "@/lib/db/schema";
@@ -297,4 +298,25 @@ export async function updatePlan(
   revalidatePath(ADMIN_PLANS_PATH, "page");
   revalidatePath(`${ADMIN_PLANS_PATH}/[slug]/edit`, "page");
   return { ok: true };
+}
+
+/**
+ * Save the selected plan ids for a batch download page and return the short
+ * selection id it opens with (`?sel=`) — a long selection no longer has to
+ * fit in the page address.
+ */
+export async function createBatchSelection(
+  planIds: string[],
+): Promise<AdminActionResult & { selectionId?: string }> {
+  const user = await requireAdmin();
+  // No size cap (unlike the destructive bulk actions): this only remembers ids.
+  const ids = Array.isArray(planIds)
+    ? [...new Set(planIds.filter((id): id is string => typeof id === "string" && id.length > 0))]
+    : [];
+  if (ids.length === 0) return actionFailure("invalid-input");
+  try {
+    return { ok: true, selectionId: await saveSelection(ids, user.id) };
+  } catch (cause) {
+    return actionFailure("failed", { cause });
+  }
 }
