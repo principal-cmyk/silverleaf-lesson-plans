@@ -172,7 +172,6 @@
         "deletedCount": "{count, plural, one {# plan} other {# plans}} deleted.",
         "blockedCount": "{count, plural, one {# plan was} other {# plans were}} kept because teachers have used or rated them — unpublish instead.",
         "confirmDelete": "Delete {count, plural, one {# plan} other {# plans}}? This cannot be undone.",
-        "tooManyForms": "One download can hold at most {max} plans. Select fewer plans and try again.",
         "error": "Something went wrong. Try again."
       },
       "forms": {

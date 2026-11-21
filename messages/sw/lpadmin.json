@@ -172,7 +172,6 @@
         "deletedCount": "{count, plural, one {Mpango #} other {Mipango #}} imefutwa.",
         "blockedCount": "{count, plural, one {Mpango # haukufutwa} other {Mipango # haikufutwa}} kwa sababu walimu wameitumia au kuipa maoni — ondoa kuchapisha badala yake.",
         "confirmDelete": "Futa {count, plural, one {mpango #} other {mipango #}}? Hili haliwezi kutenduliwa.",
-        "tooManyForms": "Upakuaji mmoja unaweza kuwa na mipango {max} tu. Chagua mipango michache kisha jaribu tena.",
         "error": "Hitilafu imetokea. Jaribu tena."
       },
       "forms": {

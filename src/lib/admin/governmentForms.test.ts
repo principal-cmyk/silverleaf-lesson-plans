@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   governmentFormsHref,
-  MAX_FORMS_PER_PDF,
   parseGovernmentFormIds,
 } from "./governmentForms";
 
@@ -23,8 +22,8 @@ describe("parseGovernmentFormIds", () => {
     expect(parseGovernmentFormIds(undefined)).toEqual([]);
   });
 
-  it("caps a selection at one PDF's worth", () => {
-    const many = Array.from({ length: MAX_FORMS_PER_PDF + 5 }, (_, i) => id(i));
-    expect(parseGovernmentFormIds(many.join(","))).toHaveLength(MAX_FORMS_PER_PDF);
+  it("does not cap the size of a selection", () => {
+    const many = Array.from({ length: 250 }, (_, i) => id(i));
+    expect(parseGovernmentFormIds(many.join(","))).toHaveLength(250);
   });
 });

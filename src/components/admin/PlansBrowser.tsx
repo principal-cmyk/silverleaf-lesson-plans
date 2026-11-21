@@ -39,7 +39,6 @@ import {
 import {
   GOVERNMENT_FORMS_PATH,
   LESSON_PLANS_PDF_PATH,
-  MAX_FORMS_PER_PDF,
   SLIDES_PATH,
 } from "@/lib/admin/governmentForms";
 import type { PlanFilters, PlanRow } from "@/lib/admin/plansQuery";
@@ -183,10 +182,6 @@ export default function PlansBrowser({
   function onDownloadPdf(pathname: string) {
     setNotice(null);
     setBulkError(null);
-    if (selected.size > MAX_FORMS_PER_PDF) {
-      setBulkError(tb("tooManyForms", { max: MAX_FORMS_PER_PDF }));
-      return;
-    }
     // Resolve the ids to the order the listing shows: loaded rows first (they
     // are already canonical), then any selected-but-unloaded ids.
     const loadedOrder = plans.map((p) => p.id).filter((id) => selected.has(id));
