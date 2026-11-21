@@ -40,6 +40,21 @@ function stage<D extends "Surface" | "Deep">(depth: D) {
   });
 }
 
+/**
+ * A real, verified web resource for the lesson. NEVER produced by the lesson
+ * model (it cannot browse and would invent URLs): `savePlanStructured` fills
+ * it from `findResourceLinks`, which only keeps links that loaded. Optional so
+ * every previously saved plan still parses.
+ */
+export const resourceLinkSchema = z.object({
+  title: z.string(),
+  url: z.string().url().startsWith("https://"),
+  kind: z.enum(["video", "image", "page"]),
+  /** Host the link points at, e.g. "youtube.com". */
+  source: z.string(),
+});
+export type ResourceLink = z.infer<typeof resourceLinkSchema>;
+
 export const structuredLessonPlanSchema = z.object({
   /** Thin identifier — just enough to know which lesson this is. */
   identifier: z.object({
@@ -102,6 +117,13 @@ export const structuredLessonPlanSchema = z.object({
     subject: z.string(),
     gaps_flagged: z.array(z.string()),
   }),
+  /** Verified web links added after generation (see `resourceLinkSchema`). */
+  resource_links: z.array(resourceLinkSchema).optional(),
+});
+
+/** What the lesson model is asked for: everything except the links it cannot verify. */
+export const generatedLessonPlanSchema = structuredLessonPlanSchema.omit({
+  resource_links: true,
 });
 
 /** The canonical structured lesson plan produced by AI Studio v2. */

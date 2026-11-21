@@ -60,6 +60,7 @@ const NOTE_WORDS = {
   en: {
     misconceptions: "Misconceptions to watch",
     watchFor: "Watch for",
+    resources: "Videos and links",
     remedial: "Fill the gap",
     support: "Support",
     challenge: "Challenge",
@@ -67,6 +68,7 @@ const NOTE_WORDS = {
   sw: {
     misconceptions: "Dhana potofu za kuangalia",
     watchFor: "Angalia",
+    resources: "Video na viungo",
     remedial: "Ziba pengo",
     support: "Msaada",
     challenge: "Changamoto",
@@ -635,6 +637,11 @@ function notesFor(
   }
   if (slide.extras.includes("watchFor") && extras.watchFor.length > 0) {
     parts.push(`${words.watchFor}:\n${extras.watchFor.map((w) => `• ${w}`).join("\n")}`);
+  }
+  if (slide.extras.includes("resources") && extras.resources.length > 0) {
+    parts.push(
+      `${words.resources}:\n${extras.resources.map((r) => `• ${r.title} — ${r.url}`).join("\n")}`,
+    );
   }
   if (slide.extras.includes("differentiation")) {
     const d = extras.differentiation;

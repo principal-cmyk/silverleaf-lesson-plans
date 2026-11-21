@@ -977,6 +977,21 @@ function ExtrasPanel({ slide, extras }: { slide: Slide; extras: TeacherExtras })
           </ul>
         </>
       ) : null}
+      {slide.extras.includes("resources") && extras.resources.length > 0 ? (
+        <>
+          <h2>{t("resources")}</h2>
+          <ul>
+            {extras.resources.map((r, i) => (
+              <li key={i}>
+                <a href={r.url} target="_blank" rel="noopener noreferrer">
+                  {r.title}
+                </a>{" "}
+                ({r.source})
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
       {slide.extras.includes("differentiation") ? (
         <>
           <h2>{t("differentiation")}</h2>

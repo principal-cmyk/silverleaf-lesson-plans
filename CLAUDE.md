@@ -57,6 +57,17 @@ npm run typecheck && npm run lint && npm run test
   the home page changes (`src/lib/time/eat.ts`). Tests pin the clock with fake
   timers, so they are deterministic — but manual testing inside that window
   looks different from outside it.
+- **Web links are never written by the lesson model.** `savePlanStructured`
+  discards any client-sent `resource_links` and fills them from
+  `src/lib/ai/resources/findLinks.ts` (OpenRouter web search, then each URL is
+  fetched and dropped if it does not load). Generation routes use
+  `generatedLessonPlanSchema`, which omits the field. Slides show the links in
+  presenter notes (hook + close slides); the government form does not.
+  Search is English-first (Kiswahili only for the Kiswahili subject), videos
+  and the providers in `resources/providers.ts` rank highest, and a model
+  relevance check runs last (~$0.04/plan). Backfill old plans with
+  `db:run -- ./src/lib/db/scripts/addResourceLinks.ts` (stop the app first;
+  load `.env.local` yourself; `RESOURCE_LINKS_DEBUG=1` traces the pipeline).
 - `OPENROUTER_API_KEY` unset (the default) ⇒ AI Studio generation is disabled
   and its UI says so; everything else works. Textbook PDF upload is NOT gated:
   the ingest still starts and every page then fails at runtime with no UI

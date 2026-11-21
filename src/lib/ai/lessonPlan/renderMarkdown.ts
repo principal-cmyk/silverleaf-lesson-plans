@@ -72,10 +72,13 @@ export function renderLessonMarkdown(plan: StructuredLessonPlan): string {
     .map((m) => `- **${m.misconception}** *${m.description}*`)
     .join("\n");
 
+  const links = (plan.resource_links ?? []).map((r) => `[${r.title}](${r.url}) (${r.source})`);
   const digitalBlock =
     d.digital_resources.length > 0
-      ? bullets(d.digital_resources)
-      : "_(none suggested)_";
+      ? bullets([...d.digital_resources, ...links])
+      : links.length > 0
+        ? bullets(links)
+        : "_(none suggested)_";
 
   const teachingSequenceBlock = TEACHING_STAGES
     .map(({ key }) => renderStage(key, ts[key]))

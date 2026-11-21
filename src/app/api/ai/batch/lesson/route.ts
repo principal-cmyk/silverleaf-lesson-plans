@@ -34,7 +34,7 @@ import { resolveGenerationModelId } from "@/lib/ai/modelSetting";
 import { TERM_VALUES } from "@/lib/naming/constants";
 import { buildFilename, subjectToken } from "@/lib/naming/format";
 import { parse } from "@/lib/naming/parse";
-import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
+import { generatedLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
 import { assembleGeneration } from "@/lib/ai/lessonPlan/assembleGeneration";
 import { loadSchemeLessonContext } from "@/lib/ai/lessonPlan/loadSchemeContext";
 import { validateLessonPlan } from "@/lib/ai/lessonPlan/validate";
@@ -134,7 +134,7 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const result = await generateObject({
       model: getModel(modelId),
-      schema: structuredLessonPlanSchema,
+      schema: generatedLessonPlanSchema,
       schemaName: "lesson_plan",
       schemaDescription: "A complete Tanzanian lesson plan.",
       system,

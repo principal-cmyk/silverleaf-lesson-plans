@@ -362,6 +362,14 @@ function PageClose({ plan }: { plan: StructuredLessonPlan }) {
                 {d.digital_resources.map((x, i) => (
                   <li key={i}>{x}</li>
                 ))}
+                {(plan.resource_links ?? []).map((r, i) => (
+                  <li key={`link-${i}`}>
+                    <a href={r.url} target="_blank" rel="noopener noreferrer">
+                      {r.title}
+                    </a>{" "}
+                    <span className={styles.tp}>({r.source})</span>
+                  </li>
+                ))}
               </ul>
             ) : (
               <p>

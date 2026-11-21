@@ -27,7 +27,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { GENERATION_MAX_OUTPUT_TOKENS, getModel, hasApiKey } from "@/lib/ai/model";
 import { resolveGenerationModelId } from "@/lib/ai/modelSetting";
-import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
+import { generatedLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
 import { assembleGeneration } from "@/lib/ai/lessonPlan/assembleGeneration";
 import { loadSchemeLessonContext } from "@/lib/ai/lessonPlan/loadSchemeContext";
 import type { SchemeMeta } from "@/lib/ai/lessonPlan/buildPrompt";
@@ -137,7 +137,7 @@ export async function POST(req: Request): Promise<Response> {
   // Stream the structured object.
   const result = streamObject({
     model: getModel(await resolveGenerationModelId()),
-    schema: structuredLessonPlanSchema,
+    schema: generatedLessonPlanSchema,
     schemaName: "lesson_plan",
     schemaDescription: "A complete Tanzanian lesson plan.",
     system,

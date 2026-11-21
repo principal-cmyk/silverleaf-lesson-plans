@@ -13,7 +13,7 @@
  * support and challenge — rides along on the slides where the teacher needs
  * it, for the presenter view and speaker notes.
  */
-import type { StructuredLessonPlan } from "@/lib/ai/lessonPlan/structuredSchema";
+import type { ResourceLink, StructuredLessonPlan } from "@/lib/ai/lessonPlan/structuredSchema";
 
 import { NO_VISUAL, type QuestionAnswer, type ScriptLine, type SlideDeck, type Visual } from "./deckSchema";
 import type { Phase } from "./labels";
@@ -25,11 +25,13 @@ export const MAX_LIST_ITEMS = 6;
 export interface TeacherExtras {
   misconceptions: Array<{ misconception: string; description: string }>;
   watchFor: string[];
+  /** Verified web links the generator found (empty when none). */
+  resources: ResourceLink[];
   differentiation: { remedial: string; support: string; challenge: string };
 }
 
 /** Which extras a slide shows in the presenter view / speaker notes. */
-export type ExtraKind = "misconceptions" | "watchFor" | "differentiation";
+export type ExtraKind = "misconceptions" | "watchFor" | "differentiation" | "resources";
 
 interface Base {
   phase: Phase;
@@ -173,7 +175,7 @@ export function deckToSlides(deck: SlideDeck): Slide[] {
     script: deck.hook.script,
     timer: length(deck.hook),
     picker: true,
-    extras: [],
+    extras: ["resources"],
   });
 
   if (iDo.key_words.length > 0) {
@@ -319,7 +321,7 @@ export function deckToSlides(deck: SlideDeck): Slide[] {
     steps: 0,
     timer: null,
     picker: false,
-    extras: [],
+    extras: ["resources"],
   });
 
   return slides;
@@ -358,6 +360,7 @@ export function teacherExtras(plan: StructuredLessonPlan): TeacherExtras {
       description: m.description,
     })),
     watchFor: plan.watch_for_notes,
+    resources: plan.resource_links ?? [],
     differentiation: {
       remedial: plan.differentiation.remedial,
       support: plan.differentiation.support,

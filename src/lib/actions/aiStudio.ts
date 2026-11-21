@@ -27,6 +27,7 @@ import { TERM_VALUES } from "@/lib/naming/constants";
 import type { StructuredLessonPlan } from "@/lib/ai/lessonPlan/structuredSchema";
 import { applyKnownIdentifier } from "@/lib/ai/lessonPlan/identifier";
 import { validateLessonPlan } from "@/lib/ai/lessonPlan/validate";
+import { findResourceLinks } from "@/lib/ai/resources/findLinks";
 import { renderLessonMarkdown } from "@/lib/ai/lessonPlan/renderMarkdown";
 import { buildFilename, subjectToken } from "@/lib/naming/format";
 import { gradeToken, parseGradeNum } from "@/lib/naming/grade";
@@ -207,13 +208,22 @@ export async function savePlanStructured(
   // naming context (see identifier.ts) so the stored content_json and the
   // rendered markdown header can never disagree with the filename/slug —
   // this covers BOTH the single-plan and the batch generation paths.
-  const normalizedPlan = applyKnownIdentifier(plan, {
+  const identified = applyKnownIdentifier(plan, {
     grade,
     subject,
     term,
     week: ctx.week,
     lesson: ctx.lesson,
   });
+
+  // Real, verified web links. Whatever the client sent is discarded: only the
+  // server-side search (which checks each URL loads) may populate them, and a
+  // failed search just means a plan without links.
+  const links = await findResourceLinks(identified);
+  const normalizedPlan: StructuredLessonPlan = {
+    ...identified,
+    resource_links: links.length > 0 ? links : undefined,
+  };
 
   const contentMarkdown = renderLessonMarkdown(normalizedPlan);
   const searchText = buildSearchText({
