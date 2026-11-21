@@ -19,6 +19,7 @@ const KNOWN: Record<string, string> = {
   CultureArtsAndSports: "Culture, Arts and Sports",
   CultureReligiousEducationArtsAndSports: "Culture, Religious Education, Arts and Sports",
   NumeracyScienceAndICT: "Numeracy, Science and ICT",
+  Ict: "ICT",
 };
 
 /** Joining words written in lower case inside a name (English and Kiswahili). */

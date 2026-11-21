@@ -19,5 +19,6 @@ describe("subjectLabel", () => {
     expect(subjectLabel("EralyLifeSkills")).toBe("Early Life Skills");
     expect(subjectLabel("HistoriaYATanzaniaNAMaadili")).toBe("Historia ya Tanzania na Maadili");
     expect(subjectLabel("NumeracyScienceAndICT")).toBe("Numeracy, Science and ICT");
+    expect(subjectLabel("Ict")).toBe("ICT");
   });
 });
