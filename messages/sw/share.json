@@ -1,0 +1,59 @@
+{
+  "share": {
+    "heading": "Mipango ya masomo ya Silverleaf",
+    "intro": "Soma mpango wowote wa somo na upakue slaidi zake. Huhitaji kuingia. Unaweza kusoma na kupakua tu — hakuna kinachoweza kubadilishwa hapa.",
+    "searchPlaceholder": "Tafuta kwa jina la somo",
+    "search": "Tafuta",
+    "none": "Hakuna mipango ya masomo iliyopatikana.",
+    "grades": "Madarasa",
+    "terms": "Mihula",
+    "allTerms": "Mihula yote",
+    "termName": "Muhula {term}",
+    "rowMeta": "M{term} · W{week} · S{lesson}",
+    "backToList": "← Mipango yote ya masomo",
+    "gone": {
+      "heading": "Kiungo hiki hakifanyi kazi",
+      "body": "Kiungo kinaweza kuwa kimezimwa au kimenakiliwa vibaya. Muulize ofisi ya shule akupe kiungo kipya."
+    },
+    "slides": {
+      "heading": "Slaidi",
+      "ready": "Slaidi za somo hili ziko tayari.",
+      "notReady": "Slaidi za somo hili hazijatengenezwa bado. Zitengeneze (huchukua kama dakika moja), au upakue slaidi rahisi sasa.",
+      "download": "Pakua slaidi (PowerPoint)",
+      "create": "Tengeneza slaidi na upakue",
+      "creating": "Inatengeneza slaidi…",
+      "basic": "Pakua slaidi rahisi sasa",
+      "wait": "Tafadhali subiri kama dakika moja. Usifunge ukurasa huu.",
+      "error": {
+        "too-many": "Slaidi nyingi sana zimetengenezwa sasa hivi. Jaribu tena baadaye, au upakue slaidi rahisi.",
+        "no-api-key": "Kutengeneza slaidi mpya hakupatikani sasa. Pakua slaidi rahisi.",
+        "no-credits": "Kutengeneza slaidi mpya hakupatikani sasa. Pakua slaidi rahisi.",
+        "rate-limit": "Mtengenezaji wa slaidi ana shughuli nyingi. Jaribu tena baada ya dakika chache.",
+        "model-error": "Slaidi hazikuweza kutengenezwa. Jaribu tena, au upakue slaidi rahisi.",
+        "network": "Hakuna mtandao. Angalia intaneti yako na ujaribu tena."
+      }
+    },
+    "admin": {
+      "heading": "Viungo vya kushiriki na walimu",
+      "back": "← Mipango ya masomo",
+      "intro": "Kiungo cha kushiriki humruhusu mwalimu yeyote kusoma mipango ya masomo na kupakua slaidi bila kuingia. Hawawezi kubadilisha chochote. Yeyote mwenye kiungo anaweza kukitumia, kwa hiyo wapatie walimu tu. Zima kiungo kikifika kwa watu wasiofaa.",
+      "labelField": "Kiungo hiki ni cha nani?",
+      "labelPlaceholder": "mfano: Walimu wote, Muhula 1",
+      "create": "Tengeneza kiungo",
+      "none": "Hakuna viungo bado.",
+      "copy": "Nakili kiungo",
+      "copied": "Kimenakiliwa",
+      "revoke": "Zima",
+      "active": "Kinafanya kazi",
+      "off": "Kimezimwa",
+      "created": "Kimetengenezwa {date}",
+      "confirmRevoke": "Zima kiungo hiki? Walimu wanaokitumia hawataweza tena kuingia.",
+      "error": {
+        "invalid-input": "Andika kiungo ni cha nani.",
+        "failed": "Kuna tatizo. Tafadhali jaribu tena.",
+        "not-found": "Kiungo hakikupatikana."
+      },
+      "navLink": "Kiungo cha walimu"
+    }
+  }
+}

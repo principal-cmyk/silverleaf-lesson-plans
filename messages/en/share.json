@@ -1,0 +1,59 @@
+{
+  "share": {
+    "heading": "Silverleaf lesson plans",
+    "intro": "Read any lesson plan and download its slides. You do not need to sign in. You can only look and download — nothing here can be changed.",
+    "searchPlaceholder": "Search by lesson title",
+    "search": "Search",
+    "none": "No lesson plans found.",
+    "grades": "Grades",
+    "terms": "Terms",
+    "allTerms": "All terms",
+    "termName": "Term {term}",
+    "rowMeta": "T{term} · W{week} · L{lesson}",
+    "backToList": "← All lesson plans",
+    "gone": {
+      "heading": "This link is not working",
+      "body": "The link may have been turned off or copied wrongly. Ask the school office for a new link."
+    },
+    "slides": {
+      "heading": "Slides",
+      "ready": "The slides for this lesson are ready.",
+      "notReady": "Slides for this lesson have not been made yet. Create them (takes about a minute), or download simple slides now.",
+      "download": "Download slides (PowerPoint)",
+      "create": "Create slides and download",
+      "creating": "Creating slides…",
+      "basic": "Download simple slides now",
+      "wait": "Please wait about a minute. Do not close this page.",
+      "error": {
+        "too-many": "Too many slides were made just now. Please try again later, or download the simple slides.",
+        "no-api-key": "Making new slides is not available now. Download the simple slides instead.",
+        "no-credits": "Making new slides is not available now. Download the simple slides instead.",
+        "rate-limit": "The slide maker is busy. Please try again in a few minutes.",
+        "model-error": "The slides could not be made. Please try again, or download the simple slides.",
+        "network": "No connection. Check your internet and try again."
+      }
+    },
+    "admin": {
+      "heading": "Teacher share links",
+      "back": "← Lesson plans",
+      "intro": "A share link lets any teacher read the lesson plans and download slides without signing in. They cannot change anything. Anyone with the link can use it, so share it only with teachers. Turn a link off if it reaches the wrong people.",
+      "labelField": "Who is this link for?",
+      "labelPlaceholder": "e.g. All teachers, Term 1",
+      "create": "Create link",
+      "none": "No links yet.",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "revoke": "Turn off",
+      "active": "Working",
+      "off": "Turned off",
+      "created": "Created {date}",
+      "confirmRevoke": "Turn this link off? Teachers using it will lose access.",
+      "error": {
+        "invalid-input": "Write who the link is for.",
+        "failed": "Something went wrong. Please try again.",
+        "not-found": "That link was not found."
+      },
+      "navLink": "Teacher share link"
+    }
+  }
+}

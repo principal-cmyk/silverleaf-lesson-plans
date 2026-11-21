@@ -41,6 +41,7 @@ export default async function AdminPlansPage({
 }) {
   await requireAdmin();
   const t = await getTranslations("lpAdmin.plans");
+  const tShare = await getTranslations("share.admin");
 
   const parsed = parsePlanFilters(await searchParams);
   const gradeNum = parseGradeParam(parsed.grade);
@@ -88,6 +89,8 @@ export default async function AdminPlansPage({
           {t("count", { count: total })}
           {" · "}
           <Link href="/admin/plans/term-downloads">{t("termDownloadsLink")}</Link>
+          {" · "}
+          <Link href="/admin/plans/share">{tShare("navLink")}</Link>
         </span>
       </div>
 

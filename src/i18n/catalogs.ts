@@ -22,4 +22,5 @@ export const catalogFiles = [
   "lpadmin", // lpAdmin
   "lpstudio", // lpStudio (the multi-panel studio + batch generation)
   "lpmanage", // lpManage (scheme/textbook/prompt admin pages)
+  "share", // share (teacher share link: public pages + admin page)
 ] as const;

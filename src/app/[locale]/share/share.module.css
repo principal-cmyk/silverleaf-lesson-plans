@@ -1,0 +1,28 @@
+.page { max-width: 62rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.banner { background: #eef4ff; border: 1px solid #c9dafc; border-radius: 0.5rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.9rem; }
+.heading { margin: 0 0 0.25rem; }
+.hint { color: var(--ink-muted); margin: 0 0 1rem; font-size: 0.9rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1rem; }
+.chip { padding: 0.35rem 0.8rem; border: 1px solid #c7ccd4; border-radius: 999px; text-decoration: none; color: inherit; font-size: 0.9rem; }
+.chipOn { background: #12305e; color: #fff; border-color: #12305e; }
+.search { display: flex; gap: 0.5rem; margin: 0 0 1.25rem; }
+.search input { flex: 1; padding: 0.5rem 0.75rem; border: 1px solid #c7ccd4; border-radius: 0.375rem; font: inherit; }
+.search button, .button { padding: 0.5rem 1rem; border: 0; border-radius: 0.375rem; background: #12305e; color: #fff; font: inherit; cursor: pointer; text-decoration: none; display: inline-block; }
+.button[disabled] { opacity: 0.6; cursor: wait; }
+.buttonAlt { background: #fff; color: #12305e; border: 1px solid #12305e; }
+.group { margin: 1.5rem 0 0.5rem; font-size: 1.05rem; }
+.list { list-style: none; margin: 0; padding: 0; border: 1px solid #e0e3e8; border-radius: 0.5rem; }
+.row { display: flex; gap: 0.75rem; align-items: baseline; padding: 0.65rem 0.9rem; border-bottom: 1px solid #eceef2; }
+.row:last-child { border-bottom: 0; }
+.rowMeta { color: var(--ink-muted); font-size: 0.8rem; white-space: nowrap; min-width: 5.5rem; }
+.rowTitle { flex: 1; }
+.back { margin: 0 0 1rem; }
+.title { margin: 0 0 0.25rem; }
+.meta { color: var(--ink-muted); margin: 0 0 1rem; }
+.slides { border: 1px solid #e0e3e8; border-radius: 0.5rem; padding: 1rem; margin: 1rem 0 1.5rem; }
+.slides h2 { margin: 0 0 0.25rem; font-size: 1.05rem; }
+.slidesActions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.status { margin: 0.75rem 0 0; font-size: 0.9rem; }
+.error { color: #b3261e; }
+.empty { color: var(--ink-muted); padding: 1rem 0; }
+.gone { max-width: 32rem; margin: 4rem auto; text-align: center; }

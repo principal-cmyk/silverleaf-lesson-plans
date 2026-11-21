@@ -20,34 +20,17 @@
  * Node runtime (NOT edge): auth, DB driver, and provider are server-only.
  */
 import { and, eq } from "drizzle-orm";
-import { generateObject, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { lessonPlans } from "@/lib/db/schema";
-import {
-  GENERATION_MAX_OUTPUT_TOKENS,
-  getModel,
-  hasApiKey,
-  isInsufficientCreditsMessage,
-  isRateLimitMessage,
-} from "@/lib/ai/model";
-import { resolveGenerationModelId } from "@/lib/ai/modelSetting";
-import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
-import { slideDeckSchema } from "@/lib/slides/deckSchema";
-import { repairDeckText } from "@/lib/slides/repair";
-import { buildSlidesPrompt } from "@/lib/slides/buildPrompt";
-import { DEFAULT_LESSON_MINUTES } from "@/lib/slides/fallbackDeck";
-import { isFresh, loadDeck, saveDeck } from "@/lib/slides/store";
+import { ensureDeck } from "@/lib/slides/generate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 /** A deck is smaller than a plan, but allow the same headroom. */
 export const maxDuration = 60;
-
-/** A response that does not fit the deck is asked for once more. */
-const MAX_ATTEMPTS = 2;
 
 const bodySchema = z.object({
   planId: z.string().uuid(),
@@ -86,57 +69,13 @@ export async function POST(req: Request): Promise<Response> {
     .limit(1);
   if (!plan) return fail("not-found", 404);
 
-  const structured = structuredLessonPlanSchema.safeParse(plan.contentJson);
-  if (!structured.success) return fail("not-structured", 400);
-
-  if (!regenerate) {
-    const existing = await loadDeck(planId);
-    if (existing && isFresh(existing, plan.contentJson)) return Response.json({ ok: true });
-  }
-
-  if (!hasApiKey()) return fail("no-api-key", 400);
-
-  const modelId = await resolveGenerationModelId();
-  const { system, prompt } = buildSlidesPrompt(
-    structured.data,
-    plan.durationMinutes ?? DEFAULT_LESSON_MINUTES,
-  );
-
-  // The deck is a large structured object: near-misses in its shape are
-  // repaired before validation, and a response that still does not fit is
-  // asked for once more before giving up (the teacher is waiting).
-  let deck;
-  for (let attempt = 1; ; attempt += 1) {
-    try {
-      const result = await generateObject({
-        model: getModel(modelId),
-        schema: slideDeckSchema,
-        schemaName: "slide_deck",
-        schemaDescription: "The pupil-facing slide deck a teacher drives one whole lesson with.",
-        system,
-        prompt,
-        maxOutputTokens: GENERATION_MAX_OUTPUT_TOKENS,
-        experimental_repairText: async ({ text }) => repairDeckText(text),
-      });
-      deck = result.object;
-      break;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(`[ai/slides] generateObject error (attempt ${attempt}):`, message);
-      if (isInsufficientCreditsMessage(message)) return fail("no-credits", 402);
-      if (isRateLimitMessage(message)) return fail("rate-limit", 429);
-      if (!NoObjectGeneratedError.isInstance(err) || attempt >= MAX_ATTEMPTS) {
-        return fail("model-error", 502);
-      }
-    }
-  }
-
-  await saveDeck({
+  const made = await ensureDeck({
     planId,
-    deck,
     contentJson: plan.contentJson,
-    modelId,
+    durationMinutes: plan.durationMinutes,
     generatedBy: user.id,
+    regenerate,
   });
+  if (!made.ok) return fail(made.error, made.status);
   return Response.json({ ok: true });
 }
