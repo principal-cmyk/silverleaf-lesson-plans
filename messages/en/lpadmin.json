@@ -214,7 +214,24 @@
           "basic": "Ready — basic slides (AI was not available)",
           "failed": "Failed"
         }
-      }
+      },
+      "termDownloads": {
+        "back": "← Back to plans",
+        "heading": "Term {term} downloads for teachers",
+        "intro": "Teachers download each grade's lesson plans and slides as ZIP files. Slides are built automatically; the lesson plan files (government forms) are drawn in your browser, one subject at a time.",
+        "none": "No published plans for this term.",
+        "ready": "{ready} of {total} lesson plan files ready",
+        "prepare": "Prepare",
+        "prepareHeading": "Prepare {subject} lesson plan files",
+        "noneToPrepare": "No published plans to prepare.",
+        "prepareSummary": "{count, plural, one {# form} other {# forms}} will be drawn and stored. Keep this tab open until it finishes.",
+        "skipped": "{count, plural, one {# plan has} other {# plans have}} no structured content and will be left out:",
+        "prepareButton": "Prepare and store the files",
+        "uploading": "Storing {done} of {total}…",
+        "uploadDone": "Stored {count} lesson plan files. Teachers can download them now.",
+        "uploadPartial": "Stored {stored} of {total}. Some files failed — run it again."
+      },
+      "termDownloadsLink": "Term downloads for teachers"
     },
     "gradeNav": {
       "gradesLabel": "Grades",

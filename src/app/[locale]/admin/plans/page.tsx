@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
+import { Link } from "@/i18n/navigation";
+
 import { requireAdmin } from "@/lib/auth";
 import { gradeCounts, parseGradeParam, termCounts } from "@/lib/admin/gradeTerm";
 import {
@@ -67,6 +69,8 @@ export default async function AdminPlansPage({
         <h1>{t("heading")}</h1>
         <span style={{ fontSize: "0.875rem", color: "var(--ink-muted)" }}>
           {t("count", { count: total })}
+          {" · "}
+          <Link href="/admin/plans/term-downloads">{t("termDownloadsLink")}</Link>
         </span>
       </div>
 

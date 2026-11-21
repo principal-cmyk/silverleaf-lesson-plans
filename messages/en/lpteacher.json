@@ -10,7 +10,8 @@
     "searchSubmit": "Search",
     "browseAll": "Browse all lesson plans",
     "upcomingHeading": "Your next lessons",
-    "upcomingEmpty": "No lessons to suggest yet. Search for a lesson plan to get started — the ones you open will shape what shows up here."
+    "upcomingEmpty": "No lessons to suggest yet. Search for a lesson plan to get started — the ones you open will shape what shows up here.",
+    "termDownloads": "Download Term 1A lesson plans and slides (ZIP)"
   },
   "lpSearch": {
     "title": "Lesson plans",
@@ -125,5 +126,13 @@
       "bad-request": "Something went wrong. Try again.",
       "network": "No connection to the server. Check the internet and try again."
     }
+  },
+  "lpDownloads": {
+    "heading": "Term {term} downloads",
+    "intro": "Lesson plans and slides for the whole term, as ZIP files. Choose a whole grade or one subject.",
+    "none": "No lesson plans are published for this term yet.",
+    "wholeGrade": "Download all of {grade}",
+    "plans": "{count, plural, one {# lesson} other {# lessons}}",
+    "download": "Download ZIP"
   }
 }

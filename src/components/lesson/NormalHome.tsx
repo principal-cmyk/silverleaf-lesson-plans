@@ -55,6 +55,9 @@ export default async function NormalHome() {
         <Link href="/search" className={styles.browseLink}>
           {t("browseAll")}
         </Link>
+        <Link href="/downloads" className={styles.browseLink}>
+          {t("termDownloads")}
+        </Link>
       </section>
 
       <UpcomingLessons />

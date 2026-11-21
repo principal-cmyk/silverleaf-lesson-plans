@@ -10,7 +10,8 @@
     "searchSubmit": "Tafuta",
     "browseAll": "Vinjari mipango yote ya somo",
     "upcomingHeading": "Masomo yako yanayofuata",
-    "upcomingEmpty": "Bado hakuna masomo ya kupendekeza. Tafuta mpango wa somo ili kuanza — yale utakayofungua yataunda yanayoonekana hapa."
+    "upcomingEmpty": "Bado hakuna masomo ya kupendekeza. Tafuta mpango wa somo ili kuanza — yale utakayofungua yataunda yanayoonekana hapa.",
+    "termDownloads": "Pakua mipango ya somo na slaidi za Muhula 1A (ZIP)"
   },
   "lpSearch": {
     "title": "Mipango ya somo",
@@ -125,5 +126,13 @@
       "bad-request": "Kuna tatizo. Jaribu tena.",
       "network": "Hakuna mawasiliano na seva. Angalia intaneti kisha jaribu tena."
     }
+  },
+  "lpDownloads": {
+    "heading": "Upakuaji wa Muhula {term}",
+    "intro": "Mipango ya somo na slaidi za muhula mzima, kwa faili za ZIP. Chagua darasa zima au somo moja.",
+    "none": "Bado hakuna mipango ya somo iliyochapishwa kwa muhula huu.",
+    "wholeGrade": "Pakua yote ya {grade}",
+    "plans": "{count, plural, one {somo #} other {masomo #}}",
+    "download": "Pakua ZIP"
   }
 }

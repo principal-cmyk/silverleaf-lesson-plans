@@ -16,12 +16,8 @@ import { and, eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { lessonPlans } from "@/lib/db/schema";
-import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema";
-import { teacherExtras } from "@/lib/slides/deckToSlides";
-import { DEFAULT_LESSON_MINUTES, fallbackDeck } from "@/lib/slides/fallbackDeck";
-import { deckToPptx } from "@/lib/slides/pptx";
+import { planPptx } from "@/lib/slides/planPptx";
 import { slidesFileName } from "@/lib/slides/fileName";
-import { isFresh, loadDeck } from "@/lib/slides/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,16 +49,9 @@ export async function GET(
     .limit(1);
   if (!plan) return Response.json({ error: "not-found" }, { status: 404 });
 
-  const structured = structuredLessonPlanSchema.safeParse(plan.contentJson);
-  if (!structured.success) return Response.json({ error: "not-structured" }, { status: 400 });
-
-  const saved = await loadDeck(plan.id);
-  const basic = !(saved && isFresh(saved, plan.contentJson));
-  const deck = basic
-    ? fallbackDeck(structured.data, plan.durationMinutes ?? DEFAULT_LESSON_MINUTES)
-    : saved!.deck;
-
-  const file = await deckToPptx(deck, teacherExtras(structured.data), { title: plan.title });
+  const made = await planPptx(plan);
+  if (!made) return Response.json({ error: "not-structured" }, { status: 400 });
+  const { file, basic } = made;
   const name = slidesFileName(plan.filename);
   return new Response(new Uint8Array(file), {
     headers: {

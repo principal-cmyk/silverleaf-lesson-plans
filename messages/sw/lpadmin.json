@@ -214,7 +214,24 @@
           "basic": "Tayari — slaidi za kawaida (AI haikupatikana)",
           "failed": "Imeshindikana"
         }
-      }
+      },
+      "termDownloads": {
+        "back": "← Rudi kwenye mipango",
+        "heading": "Upakuaji wa Muhula {term} kwa walimu",
+        "intro": "Walimu hupakua mipango ya somo na slaidi za kila darasa kama faili za ZIP. Slaidi hutengenezwa zenyewe; faili za mipango ya somo (fomu za serikali) huchorwa kwenye kivinjari chako, somo moja kwa wakati.",
+        "none": "Hakuna mipango iliyochapishwa kwa muhula huu.",
+        "ready": "Faili {ready} kati ya {total} za mipango ya somo ziko tayari",
+        "prepare": "Andaa",
+        "prepareHeading": "Andaa faili za mipango ya somo la {subject}",
+        "noneToPrepare": "Hakuna mipango iliyochapishwa ya kuandaa.",
+        "prepareSummary": "{count, plural, one {Fomu # itachorwa} other {Fomu # zitachorwa}} na kuhifadhiwa. Acha kichupo hiki wazi hadi kimalize.",
+        "skipped": "{count, plural, one {Mpango # hauna} other {Mipango # haina}} maudhui yaliyopangwa na utaachwa:",
+        "prepareButton": "Andaa na uhifadhi faili",
+        "uploading": "Inahifadhi {done} kati ya {total}…",
+        "uploadDone": "Faili {count} za mipango ya somo zimehifadhiwa. Walimu wanaweza kuzipakua sasa.",
+        "uploadPartial": "Zimehifadhiwa {stored} kati ya {total}. Baadhi zimeshindwa — jaribu tena."
+      },
+      "termDownloadsLink": "Upakuaji wa muhula kwa walimu"
     },
     "gradeNav": {
       "gradesLabel": "Madarasa",

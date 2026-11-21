@@ -49,6 +49,7 @@ export default function PrintButton({
   jpegQuality = 0.98,
   overflow = "shrink",
   bundle = "pdf",
+  onFiles,
 }: {
   className?: string;
   fileName?: string;
@@ -80,6 +81,12 @@ export default function PrintButton({
    * `data-print-file`.
    */
   bundle?: "pdf" | "zip";
+  /**
+   * With `bundle="zip"`: receive the finished PDFs (file name → bytes)
+   * instead of downloading a ZIP of them. The button stays busy until the
+   * promise settles, and a rejection shows as the usual error.
+   */
+  onFiles?: (files: Record<string, Uint8Array>) => Promise<void>;
 }) {
   const t = useTranslations("lpPlan");
   const [busy, setBusy] = useState(false);
@@ -344,6 +351,11 @@ export default function PrintButton({
           finish(out, name);
           files[name] = new Uint8Array(out.pdf.output("arraybuffer"));
         }
+      }
+
+      if (zip && onFiles) {
+        await onFiles(files);
+        return;
       }
 
       if (zip) {
