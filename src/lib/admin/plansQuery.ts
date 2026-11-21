@@ -153,7 +153,7 @@ export interface PlanFilterOptions {
  * Distinct grades (ordered by numeric grade) and subjects (alphabetical) for the
  * filter selects. Cheap — two small DISTINCT scans over indexed columns.
  */
-export async function fetchPlanFilterOptions(): Promise<PlanFilterOptions> {
+export async function fetchPlanFilterOptions(gradeNum?: number | null): Promise<PlanFilterOptions> {
   const [grades, subjects] = await Promise.all([
     db
       .selectDistinct({ grade: lessonPlans.grade, gradeNum: lessonPlans.gradeNum })
@@ -162,6 +162,8 @@ export async function fetchPlanFilterOptions(): Promise<PlanFilterOptions> {
     db
       .selectDistinct({ subject: lessonPlans.subject })
       .from(lessonPlans)
+      // With a grade chosen, offer only that grade's subjects.
+      .where(gradeNum != null ? eq(lessonPlans.gradeNum, gradeNum) : undefined)
       .orderBy(asc(lessonPlans.subject)),
   ]);
 

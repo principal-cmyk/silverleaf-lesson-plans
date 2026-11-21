@@ -42,15 +42,20 @@ export default async function AdminPlansPage({
   await requireAdmin();
   const t = await getTranslations("lpAdmin.plans");
 
-  const filters = parsePlanFilters(await searchParams);
+  const parsed = parsePlanFilters(await searchParams);
+  const gradeNum = parseGradeParam(parsed.grade);
+  const options = await fetchPlanFilterOptions(gradeNum);
+  // A subject picked under another grade may not exist in this one: drop it.
+  const filters =
+    parsed.subject && !options.subjects.includes(parsed.subject)
+      ? { ...parsed, subject: undefined }
+      : parsed;
 
-  const [options, total, rows, groups] = await Promise.all([
-    fetchPlanFilterOptions(),
+  const [total, rows, groups] = await Promise.all([
     countPlans(filters),
     fetchPlansPage(filters, { offset: 0, limit: PAGE_SIZE }),
     fetchGradeTermCounts(filters),
   ]);
-  const gradeNum = parseGradeParam(filters.grade);
 
   // Grades with plans in the chosen term (under the other filters), for the
   // "download one file per grade" run.
