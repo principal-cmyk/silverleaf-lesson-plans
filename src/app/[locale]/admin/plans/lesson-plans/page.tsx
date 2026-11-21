@@ -16,6 +16,7 @@ import PrintButton from "@/components/lesson/document/PrintButton";
 import { subjectFolder } from "@/lib/bundles/folderName";
 // Same page chrome as the batch government-forms page.
 import styles from "../government-forms/governmentForms.module.css";
+import { titledFilename } from "@/lib/naming/titled";
 
 /** Live, authenticated data — render on demand (never prerender/cache). */
 export const dynamic = "force-dynamic";
@@ -65,12 +66,12 @@ export default async function LessonPlansPdfPage({
             asc(lessonPlans.lesson),
           );
 
-  const plans: Array<{ id: string; filename: string; subject: string; plan: StructuredLessonPlan }> = [];
+  const plans: Array<{ id: string; filename: string; title: string; subject: string; plan: StructuredLessonPlan }> = [];
   const skipped: string[] = [];
   for (const row of rows) {
     const structured = structuredLessonPlanSchema.safeParse(row.contentJson);
     if (structured.success) {
-      plans.push({ id: row.id, filename: row.filename, subject: row.subject, plan: structured.data });
+      plans.push({ id: row.id, filename: row.filename, title: row.title, subject: row.subject, plan: structured.data });
     } else {
       skipped.push(row.title);
     }
@@ -124,9 +125,9 @@ export default async function LessonPlansPdfPage({
               overflow="flow"
             />
           </div>
-          {plans.map(({ id, filename, subject, plan }) => (
+          {plans.map(({ id, filename, title, subject, plan }) => (
             <div key={id} className={styles.form} data-print-folder={subjectFolder(subject, subjects)}>
-              <LessonPlanDocument plan={plan} fileName={`${filename}_Lesson_Plan.pdf`} />
+              <LessonPlanDocument plan={plan} fileName={`${titledFilename(filename, title)}_Lesson_Plan.pdf`} />
             </div>
           ))}
         </div>

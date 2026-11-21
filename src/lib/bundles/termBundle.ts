@@ -21,6 +21,7 @@ import { slidesFileName } from "@/lib/slides/fileName";
 
 import { safeSegment } from "./folderName";
 import { currentFormPdfIds, readCurrentFormPdf } from "./formPdfs";
+import { titledFilename } from "@/lib/naming/titled";
 
 export interface SubjectSummary {
   subject: string;
@@ -109,13 +110,13 @@ export async function buildTermZip(
   for (const row of rows) {
     const dir = subjects.size > 1 || !subject ? `${safeSegment(row.subject)}/` : "";
     const form = await readCurrentFormPdf(row.id, row.contentJson);
-    if (form) files[`${dir}Lesson_Plans/${row.filename}_Lesson_Plan.pdf`] = new Uint8Array(form);
+    if (form) files[`${dir}Lesson_Plans/${titledFilename(row.filename, row.title)}_Lesson_Plan.pdf`] = new Uint8Array(form);
     else {
       missingForms += 1;
       notes.push(`No lesson plan file yet: ${row.filename}`);
     }
     const slides = await planPptx(row);
-    if (slides) files[`${dir}Slides/${slidesFileName(row.filename)}`] = new Uint8Array(slides.file);
+    if (slides) files[`${dir}Slides/${slidesFileName(row.filename, row.title)}`] = new Uint8Array(slides.file);
     else {
       missingSlides += 1;
       notes.push(`No slides: ${row.filename}`);

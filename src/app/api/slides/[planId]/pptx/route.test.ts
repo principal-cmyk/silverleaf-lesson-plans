@@ -2,6 +2,7 @@
  * GET /api/slides/[planId]/pptx — serves the saved AI deck while it is fresh,
  * the basic deck otherwise, with the same visibility as the slides page.
  */
+import { slidesFileName } from "@/lib/slides/fileName";
 import { eq } from "drizzle-orm";
 import { strFromU8, unzipSync } from "fflate";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -49,7 +50,7 @@ beforeEach(() => {
 /** A fresh plan of our own, with the content_json as stored (identifier filled in). */
 async function makePlan(
   publish = true,
-): Promise<{ id: string; filename: string; contentJson: unknown }> {
+): Promise<{ id: string; filename: string; title: string; contentJson: unknown }> {
   lessonNo += 1;
   const res = await savePlanStructured(
     VALID_PLAN,
@@ -58,7 +59,7 @@ async function makePlan(
   );
   expect(res.ok).toBe(true);
   const [row] = await db
-    .select({ id: lessonPlans.id, filename: lessonPlans.filename, contentJson: lessonPlans.contentJson })
+    .select({ id: lessonPlans.id, filename: lessonPlans.filename, title: lessonPlans.title, contentJson: lessonPlans.contentJson })
     .from(lessonPlans)
     .where(eq(lessonPlans.id, res.planId!));
   return row!;
@@ -82,7 +83,7 @@ describe("GET /api/slides/[planId]/pptx", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toMatch(/presentationml/);
     expect(res.headers.get("content-disposition")).toBe(
-      `attachment; filename="${plan.filename}_Slides.pptx"`,
+      `attachment; filename="${slidesFileName(plan.filename, plan.title)}"`,
     );
     expect(res.headers.get("x-slides-basic")).toBe("0");
     expect(await titleSlide(res)).toContain("AI TITLE");

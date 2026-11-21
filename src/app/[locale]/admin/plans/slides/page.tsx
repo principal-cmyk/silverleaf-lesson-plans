@@ -90,7 +90,7 @@ export default async function SlidesDownloadPage({
     items.push({
       id: row.id,
       title: row.title,
-      fileName: `${folder ? `${folder}/` : ""}${slidesFileName(row.filename)}`,
+      fileName: `${folder ? `${folder}/` : ""}${slidesFileName(row.filename, row.title)}`,
       ready: deckHash.get(row.id) === contentHash(row.contentJson),
     });
   }

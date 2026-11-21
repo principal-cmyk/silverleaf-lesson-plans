@@ -17,6 +17,7 @@ import { formatPlanMeta } from "@/lib/lesson/planMeta";
 import BackButton from "./BackButton";
 import PlanVersionSwitch from "./PlanVersionSwitch";
 import styles from "./plan.module.css";
+import { titledFilename } from "@/lib/naming/titled";
 
 /**
  * Plan detail.
@@ -133,7 +134,7 @@ export default async function PlanDetailPage({
               government={
                 <ComplianceDocument
                   form={toComplianceForm(structured.data, plan.durationMinutes)}
-                  fileName={`${plan.filename}_Government_Form.pdf`}
+                  fileName={`${titledFilename(plan.filename, plan.title)}_Government_Form.pdf`}
                   downloadLabel={t("downloadGovernment")}
                 />
               }

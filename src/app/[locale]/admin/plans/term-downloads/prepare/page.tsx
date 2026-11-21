@@ -12,6 +12,7 @@ import { TERM_ORDINAL } from "@/lib/naming/constants";
 import ComplianceDocument from "@/components/lesson/document/ComplianceDocument";
 import styles from "../../government-forms/governmentForms.module.css";
 import UploadForms from "./UploadForms";
+import { titledFilename } from "@/lib/naming/titled";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,7 @@ export default async function PrepareTermFormsPage({
           )
           .orderBy(asc(lessonPlans.week), asc(lessonPlans.lesson));
 
-  const forms: Array<{ id: string; filename: string; form: ReturnType<typeof toComplianceForm> }> =
+  const forms: Array<{ id: string; filename: string; title: string; form: ReturnType<typeof toComplianceForm> }> =
     [];
   const skipped: string[] = [];
   for (const row of rows) {
@@ -63,6 +64,7 @@ export default async function PrepareTermFormsPage({
       forms.push({
         id: row.id,
         filename: row.filename,
+        title: row.title,
         form: toComplianceForm(structured.data, row.durationMinutes),
       });
     } else {
@@ -95,15 +97,15 @@ export default async function PrepareTermFormsPage({
         <UploadForms
           // Names as PrintButton reads them from each form's data-print-file.
           planIdByFile={Object.fromEntries(
-            forms.map((f) => [`${f.filename}_Government_Form.pdf`, f.id]),
+            forms.map((f) => [`${titledFilename(f.filename, f.title)}_Government_Form.pdf`, f.id]),
           )}
           zipName={`${subject}_forms.zip`}
         >
-          {forms.map(({ id, filename, form }) => (
+          {forms.map(({ id, filename, title, form }) => (
             <div key={id} className={styles.form}>
               <ComplianceDocument
                 form={form}
-                fileName={`${filename}_Government_Form.pdf`}
+                fileName={`${titledFilename(filename, title)}_Government_Form.pdf`}
                 showDownload={false}
               />
             </div>

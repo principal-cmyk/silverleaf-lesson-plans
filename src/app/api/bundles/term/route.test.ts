@@ -3,6 +3,8 @@
  * plans (stored form PDFs + built slides), and PUT /api/admin/form-pdfs/[planId]
  * is how the PDFs get there.
  */
+import { titledFilename } from "@/lib/naming/titled";
+import { slidesFileName } from "@/lib/slides/fileName";
 import { eq } from "drizzle-orm";
 import { strFromU8, unzipSync } from "fflate";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -63,7 +65,7 @@ async function makePlan(subject: string, publish = true) {
   );
   expect(res.ok).toBe(true);
   const [row] = await db
-    .select({ id: lessonPlans.id, filename: lessonPlans.filename })
+    .select({ id: lessonPlans.id, filename: lessonPlans.filename, title: lessonPlans.title })
     .from(lessonPlans)
     .where(eq(lessonPlans.id, res.planId!));
   return row!;
@@ -91,9 +93,9 @@ describe("term bundle", () => {
     const files = await entries(res);
     expect(Object.keys(files).sort()).toEqual(
       [
-        `Lesson_Plans/${a.filename}_Lesson_Plan.pdf`,
-        `Slides/${a.filename}_Slides.pptx`,
-        `Slides/${b.filename}_Slides.pptx`,
+        `Lesson_Plans/${titledFilename(a.filename, a.title)}_Lesson_Plan.pdf`,
+        `Slides/${slidesFileName(a.filename, a.title)}`,
+        `Slides/${slidesFileName(b.filename, b.title)}`,
         "README.txt",
       ].sort(),
     );
@@ -105,7 +107,7 @@ describe("term bundle", () => {
     const draft = await makePlan("Whole", false);
     const files = await entries(await get("grade=G5&term=1a"));
     const names = Object.keys(files);
-    expect(names).toContain(`Whole/Slides/${pub.filename}_Slides.pptx`);
+    expect(names).toContain(`Whole/Slides/${slidesFileName(pub.filename, pub.title)}`);
     expect(names.some((n) => n.includes(draft.filename))).toBe(false);
   });
 

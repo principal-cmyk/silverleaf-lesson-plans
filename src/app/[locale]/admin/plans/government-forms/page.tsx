@@ -15,6 +15,7 @@ import ComplianceDocument, {
 import PrintButton from "@/components/lesson/document/PrintButton";
 import { subjectFolder } from "@/lib/bundles/folderName";
 import styles from "./governmentForms.module.css";
+import { titledFilename } from "@/lib/naming/titled";
 
 /** Live, authenticated data — render on demand (never prerender/cache). */
 export const dynamic = "force-dynamic";
@@ -64,7 +65,7 @@ export default async function GovernmentFormsPage({
             asc(lessonPlans.lesson),
           );
 
-  const forms: Array<{ id: string; filename: string; subject: string; form: ReturnType<typeof toComplianceForm> }> =
+  const forms: Array<{ id: string; filename: string; title: string; subject: string; form: ReturnType<typeof toComplianceForm> }> =
     [];
   const skipped: string[] = [];
   for (const row of rows) {
@@ -73,6 +74,7 @@ export default async function GovernmentFormsPage({
       forms.push({
         id: row.id,
         filename: row.filename,
+        title: row.title,
         subject: row.subject,
         form: toComplianceForm(structured.data, row.durationMinutes),
       });
@@ -130,11 +132,11 @@ export default async function GovernmentFormsPage({
               jpegQuality={0.85}
             />
           </div>
-          {forms.map(({ id, filename, subject, form }) => (
+          {forms.map(({ id, filename, title, subject, form }) => (
             <div key={id} className={styles.form} data-print-folder={subjectFolder(subject, subjects)}>
               <ComplianceDocument
                 form={form}
-                fileName={`${filename}_Government_Form.pdf`}
+                fileName={`${titledFilename(filename, title)}_Government_Form.pdf`}
                 showDownload={false}
               />
             </div>

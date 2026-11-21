@@ -52,7 +52,7 @@ export async function GET(
   const made = await planPptx(plan);
   if (!made) return Response.json({ error: "not-structured" }, { status: 400 });
   const { file, basic } = made;
-  const name = slidesFileName(plan.filename);
+  const name = slidesFileName(plan.filename, plan.title);
   return new Response(new Uint8Array(file), {
     headers: {
       "content-type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
