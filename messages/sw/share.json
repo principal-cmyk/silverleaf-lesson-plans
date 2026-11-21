@@ -60,6 +60,7 @@
     "clearSearch": "Futa utafutaji",
     "rowMetaFull": "{grade} · {subject} · M{term} · W{week} · S{lesson}",
     "breadcrumb": "Uko hapa",
-    "backToFolder": "← Rudi {grade} · {subject}"
+    "backToFolder": "← Rudi {grade} · {subject} · Muhula {term}",
+    "chooseTerm": "Chagua muhula"
   }
 }

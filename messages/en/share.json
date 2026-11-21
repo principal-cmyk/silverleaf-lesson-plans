@@ -60,6 +60,7 @@
     "clearSearch": "Clear search",
     "rowMetaFull": "{grade} · {subject} · T{term} · W{week} · L{lesson}",
     "breadcrumb": "You are here",
-    "backToFolder": "← Back to {grade} · {subject}"
+    "backToFolder": "← Back to {grade} · {subject} · Term {term}",
+    "chooseTerm": "Choose a term"
   }
 }

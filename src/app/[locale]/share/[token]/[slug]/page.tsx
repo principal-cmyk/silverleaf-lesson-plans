@@ -59,8 +59,8 @@ export default async function SharedPlanPage({
   return (
     <main className={styles.page}>
       <p className={styles.back}>
-        <Link href={`/share/${token}?grade=${plan.gradeNum}&subject=${encodeURIComponent(plan.subject)}`}>
-          {ts("backToFolder", { grade: gradeLabel(plan.gradeNum), subject: subjectLabel(plan.subject) })}
+        <Link href={`/share/${token}?grade=${plan.gradeNum}&subject=${encodeURIComponent(plan.subject)}&term=${plan.term}`}>
+          {ts("backToFolder", { grade: gradeLabel(plan.gradeNum), subject: subjectLabel(plan.subject), term: plan.term.toUpperCase() })}
         </Link>
       </p>
       <h1 className={styles.title}>{plan.title}</h1>

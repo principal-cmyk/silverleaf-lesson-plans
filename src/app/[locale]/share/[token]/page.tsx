@@ -177,26 +177,49 @@ export default async function SharedLibraryPage({
     );
   }
 
-  // Level 3 — the lessons of one subject, by term (already ordered by week and lesson).
-  const byTerm = new Map<string, typeof all>();
-  for (const p of inGrade.filter((x) => x.subject === subject)) {
-    byTerm.set(p.term, [...(byTerm.get(p.term) ?? []), p]);
+  const inSubject = inGrade.filter((p) => p.subject === subject);
+  const termsHere = countBy(inSubject, (p) => p.term); // already in term order
+  const term = one(sp.term);
+  const subjectHref = `/share/${token}?grade=${grade}&subject=${encodeURIComponent(subject)}`;
+
+  // Level 3 — term folders inside the subject.
+  if (!termsHere.has(term)) {
+    return (
+      <main className={styles.page}>
+        <p className={styles.crumbs} aria-label={t("breadcrumb")}>
+          <Link href={`/share/${token}`}>{t("allGrades")}</Link> /{" "}
+          <Link href={`/share/${token}?grade=${grade}`}>{gradeLabel(grade)}</Link> / {subjectLabel(subject)}
+        </p>
+        <h1 className={styles.heading}>
+          {gradeLabel(grade)} · {subjectLabel(subject)}
+        </h1>
+        <h2 className={styles.group}>{t("chooseTerm")}</h2>
+        <ul className={styles.folders}>
+          {[...termsHere].map(([x, n]) => (
+            <li key={x}>
+              <Link className={styles.folder} href={`${subjectHref}&term=${x}`}>
+                <span className={styles.folderName}>{t("termHeading", { term: x.toUpperCase() })}</span>
+                <span className={styles.folderCount}>{folderCount(n)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </main>
+    );
   }
+
+  // Level 4 — the lessons of one term (already ordered by week and lesson).
   return (
     <main className={styles.page}>
       <p className={styles.crumbs} aria-label={t("breadcrumb")}>
         <Link href={`/share/${token}`}>{t("allGrades")}</Link> /{" "}
-        <Link href={`/share/${token}?grade=${grade}`}>{gradeLabel(grade)}</Link> / {subjectLabel(subject)}
+        <Link href={`/share/${token}?grade=${grade}`}>{gradeLabel(grade)}</Link> /{" "}
+        <Link href={subjectHref}>{subjectLabel(subject)}</Link> / {t("termHeading", { term: term.toUpperCase() })}
       </p>
       <h1 className={styles.heading}>
-        {gradeLabel(grade)} · {subjectLabel(subject)}
+        {gradeLabel(grade)} · {subjectLabel(subject)} · {t("termHeading", { term: term.toUpperCase() })}
       </h1>
-      {[...byTerm].map(([term, rows]) => (
-        <section key={term}>
-          <h2 className={styles.group}>{t("termHeading", { term: term.toUpperCase() })}</h2>
-          {list(rows, false)}
-        </section>
-      ))}
+      {list(inSubject.filter((p) => p.term === term), false)}
     </main>
   );
 }
