@@ -5,10 +5,6 @@
     "searchPlaceholder": "Tafuta kwa jina la somo",
     "search": "Tafuta",
     "none": "Hakuna mipango ya masomo iliyopatikana.",
-    "grades": "Madarasa",
-    "terms": "Mihula",
-    "allTerms": "Mihula yote",
-    "termName": "Muhula {term}",
     "rowMeta": "M{term} · W{week} · S{lesson}",
     "backToList": "← Mipango yote ya masomo",
     "gone": {
@@ -54,6 +50,16 @@
         "not-found": "Kiungo hakikupatikana."
       },
       "navLink": "Kiungo cha walimu"
-    }
+    },
+    "chooseGrade": "Chagua darasa lako",
+    "chooseSubject": "Chagua somo",
+    "allGrades": "Madarasa yote",
+    "lessonCount": "{count, plural, one {somo #} other {masomo #}}",
+    "termHeading": "Muhula {term}",
+    "searchResults": "Matokeo ya utafutaji wa “{q}”",
+    "clearSearch": "Futa utafutaji",
+    "rowMetaFull": "{grade} · {subject} · M{term} · W{week} · S{lesson}",
+    "breadcrumb": "Uko hapa",
+    "backToFolder": "← Rudi {grade} · {subject}"
   }
 }

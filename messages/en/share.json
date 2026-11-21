@@ -5,10 +5,6 @@
     "searchPlaceholder": "Search by lesson title",
     "search": "Search",
     "none": "No lesson plans found.",
-    "grades": "Grades",
-    "terms": "Terms",
-    "allTerms": "All terms",
-    "termName": "Term {term}",
     "rowMeta": "T{term} · W{week} · L{lesson}",
     "backToList": "← All lesson plans",
     "gone": {
@@ -54,6 +50,16 @@
         "not-found": "That link was not found."
       },
       "navLink": "Teacher share link"
-    }
+    },
+    "chooseGrade": "Choose your grade",
+    "chooseSubject": "Choose a subject",
+    "allGrades": "All grades",
+    "lessonCount": "{count, plural, one {# lesson} other {# lessons}}",
+    "termHeading": "Term {term}",
+    "searchResults": "Search results for “{q}”",
+    "clearSearch": "Clear search",
+    "rowMetaFull": "{grade} · {subject} · T{term} · W{week} · L{lesson}",
+    "breadcrumb": "You are here",
+    "backToFolder": "← Back to {grade} · {subject}"
   }
 }

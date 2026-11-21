@@ -12,6 +12,8 @@ import { db } from "@/lib/db";
 import { lessonPlans } from "@/lib/db/schema";
 import { markdownToReact } from "@/lib/lesson/markdownToReact";
 import { formatPlanMeta } from "@/lib/lesson/planMeta";
+import { gradeLabel } from "@/lib/naming/grade";
+import { subjectLabel } from "@/lib/naming/subjectLabel";
 import { titledFilename } from "@/lib/naming/titled";
 import { findActiveShareLink } from "@/lib/share/links";
 import { isFresh, loadDeck } from "@/lib/slides/store";
@@ -57,7 +59,9 @@ export default async function SharedPlanPage({
   return (
     <main className={styles.page}>
       <p className={styles.back}>
-        <Link href={`/share/${token}`}>{ts("backToList")}</Link>
+        <Link href={`/share/${token}?grade=${plan.gradeNum}&subject=${encodeURIComponent(plan.subject)}`}>
+          {ts("backToFolder", { grade: gradeLabel(plan.gradeNum), subject: subjectLabel(plan.subject) })}
+        </Link>
       </p>
       <h1 className={styles.title}>{plan.title}</h1>
       <p className={styles.meta}>{formatPlanMeta(plan, t)}</p>
