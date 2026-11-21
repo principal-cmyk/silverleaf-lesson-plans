@@ -10,6 +10,7 @@ import { structuredLessonPlanSchema } from "@/lib/ai/lessonPlan/structuredSchema
 import { resolveBatchIds } from "@/lib/admin/batchSelection";
 import BatchAutoRun from "@/components/admin/BatchAutoRun";
 import { slideDeckSchema } from "@/lib/slides/deckSchema";
+import { subjectFolder } from "@/lib/bundles/folderName";
 import { slidesFileName } from "@/lib/slides/fileName";
 import { contentHash } from "@/lib/slides/store";
 import BulkSlides, { type BulkSlideItem } from "./BulkSlides";
@@ -47,6 +48,7 @@ export default async function SlidesDownloadPage({
             id: lessonPlans.id,
             title: lessonPlans.title,
             filename: lessonPlans.filename,
+            subject: lessonPlans.subject,
             contentJson: lessonPlans.contentJson,
           })
           .from(lessonPlans)
@@ -76,6 +78,7 @@ export default async function SlidesDownloadPage({
     decks.filter((d) => slideDeckSchema.safeParse(d.deck).success).map((d) => [d.planId, d.sourceHash]),
   );
 
+  const subjects = rows.map((r) => r.subject);
   const items: BulkSlideItem[] = [];
   const skipped: string[] = [];
   for (const row of rows) {
@@ -83,10 +86,11 @@ export default async function SlidesDownloadPage({
       skipped.push(row.title);
       continue;
     }
+    const folder = subjectFolder(row.subject, subjects);
     items.push({
       id: row.id,
       title: row.title,
-      fileName: slidesFileName(row.filename),
+      fileName: `${folder ? `${folder}/` : ""}${slidesFileName(row.filename)}`,
       ready: deckHash.get(row.id) === contentHash(row.contentJson),
     });
   }

@@ -13,6 +13,7 @@ import ComplianceDocument, {
   COMPLIANCE_STAGE_WIDTH,
 } from "@/components/lesson/document/ComplianceDocument";
 import PrintButton from "@/components/lesson/document/PrintButton";
+import { subjectFolder } from "@/lib/bundles/folderName";
 import styles from "./governmentForms.module.css";
 
 /** Live, authenticated data — render on demand (never prerender/cache). */
@@ -49,6 +50,7 @@ export default async function GovernmentFormsPage({
             id: lessonPlans.id,
             title: lessonPlans.title,
             filename: lessonPlans.filename,
+            subject: lessonPlans.subject,
             contentJson: lessonPlans.contentJson,
             durationMinutes: lessonPlans.durationMinutes,
           })
@@ -62,7 +64,7 @@ export default async function GovernmentFormsPage({
             asc(lessonPlans.lesson),
           );
 
-  const forms: Array<{ id: string; filename: string; form: ReturnType<typeof toComplianceForm> }> =
+  const forms: Array<{ id: string; filename: string; subject: string; form: ReturnType<typeof toComplianceForm> }> =
     [];
   const skipped: string[] = [];
   for (const row of rows) {
@@ -71,6 +73,7 @@ export default async function GovernmentFormsPage({
       forms.push({
         id: row.id,
         filename: row.filename,
+        subject: row.subject,
         form: toComplianceForm(structured.data, row.durationMinutes),
       });
     } else {
@@ -78,6 +81,7 @@ export default async function GovernmentFormsPage({
     }
   }
 
+  const subjects = forms.map((f) => f.subject);
   const first = forms[0];
   const last = forms[forms.length - 1];
   const zipName =
@@ -126,8 +130,8 @@ export default async function GovernmentFormsPage({
               jpegQuality={0.85}
             />
           </div>
-          {forms.map(({ id, filename, form }) => (
-            <div key={id} className={styles.form}>
+          {forms.map(({ id, filename, subject, form }) => (
+            <div key={id} className={styles.form} data-print-folder={subjectFolder(subject, subjects)}>
               <ComplianceDocument
                 form={form}
                 fileName={`${filename}_Government_Form.pdf`}

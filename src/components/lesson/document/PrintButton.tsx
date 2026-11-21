@@ -343,12 +343,13 @@ export default function PrintButton({
         }
 
         if (zip) {
-          const name = uniqueName(
-            files,
-            unit.getAttribute("data-print-file") ||
-              `document-${units.indexOf(unit) + 1}.pdf`,
-          );
-          finish(out, name);
+          // A `data-print-folder` on the document (or any ancestor inside the
+          // page) files its PDF in that folder of the ZIP.
+          const folder = unit.closest("[data-print-folder]")?.getAttribute("data-print-folder");
+          const base =
+            unit.getAttribute("data-print-file") || `document-${units.indexOf(unit) + 1}.pdf`;
+          const name = uniqueName(files, folder ? `${folder}/${base}` : base);
+          finish(out, name.slice(name.lastIndexOf("/") + 1));
           files[name] = new Uint8Array(out.pdf.output("arraybuffer"));
         }
       }

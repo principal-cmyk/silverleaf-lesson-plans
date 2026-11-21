@@ -19,6 +19,7 @@ import { gradeToken } from "@/lib/naming/grade";
 import { planPptx } from "@/lib/slides/planPptx";
 import { slidesFileName } from "@/lib/slides/fileName";
 
+import { safeSegment } from "./folderName";
 import { currentFormPdfIds, readCurrentFormPdf } from "./formPdfs";
 
 export interface SubjectSummary {
@@ -52,11 +53,6 @@ export async function termBundleIndex(gradeNum: number, term: Term): Promise<Sub
     bySubject.set(r.subject, s);
   }
   return [...bySubject.values()];
-}
-
-/** A folder/file-safe form of a subject name. */
-export function safeSegment(s: string): string {
-  return s.replace(/[^\p{L}\p{N}._-]+/gu, "_").replace(/^_+|_+$/g, "") || "Subject";
 }
 
 /** Download name: `G2_Term1A_Math.zip`, or `G2_Term1A.zip` for every subject. */

@@ -13,6 +13,7 @@ import { resolveBatchIds } from "@/lib/admin/batchSelection";
 import BatchAutoRun from "@/components/admin/BatchAutoRun";
 import LessonPlanDocument from "@/components/lesson/document/LessonPlanDocument";
 import PrintButton from "@/components/lesson/document/PrintButton";
+import { subjectFolder } from "@/lib/bundles/folderName";
 // Same page chrome as the batch government-forms page.
 import styles from "../government-forms/governmentForms.module.css";
 
@@ -51,6 +52,7 @@ export default async function LessonPlansPdfPage({
             id: lessonPlans.id,
             title: lessonPlans.title,
             filename: lessonPlans.filename,
+            subject: lessonPlans.subject,
             contentJson: lessonPlans.contentJson,
           })
           .from(lessonPlans)
@@ -63,17 +65,18 @@ export default async function LessonPlansPdfPage({
             asc(lessonPlans.lesson),
           );
 
-  const plans: Array<{ id: string; filename: string; plan: StructuredLessonPlan }> = [];
+  const plans: Array<{ id: string; filename: string; subject: string; plan: StructuredLessonPlan }> = [];
   const skipped: string[] = [];
   for (const row of rows) {
     const structured = structuredLessonPlanSchema.safeParse(row.contentJson);
     if (structured.success) {
-      plans.push({ id: row.id, filename: row.filename, plan: structured.data });
+      plans.push({ id: row.id, filename: row.filename, subject: row.subject, plan: structured.data });
     } else {
       skipped.push(row.title);
     }
   }
 
+  const subjects = plans.map((p) => p.subject);
   const first = plans[0];
   const last = plans[plans.length - 1];
   const zipName =
@@ -121,8 +124,8 @@ export default async function LessonPlansPdfPage({
               overflow="flow"
             />
           </div>
-          {plans.map(({ id, filename, plan }) => (
-            <div key={id} className={styles.form}>
+          {plans.map(({ id, filename, subject, plan }) => (
+            <div key={id} className={styles.form} data-print-folder={subjectFolder(subject, subjects)}>
               <LessonPlanDocument plan={plan} fileName={`${filename}_Lesson_Plan.pdf`} />
             </div>
           ))}
