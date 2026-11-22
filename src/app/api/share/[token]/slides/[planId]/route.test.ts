@@ -9,6 +9,8 @@ import { VALID_PLAN } from "../../../../../../../test/fixtures/structuredPlan";
 
 vi.mock("@/lib/auth", () => ({ requireUser: vi.fn(), requireAdmin: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+const access = vi.hoisted(() => ({ ok: true }));
+vi.mock("@/lib/share/viewer", () => ({ hasShareAccess: async () => access.ok }));
 
 import { savePlanStructured } from "@/lib/actions/aiStudio";
 import { db } from "@/lib/db";
@@ -61,10 +63,20 @@ const create = (t: string, id: string, ip = "1.1.1.1") =>
   POST(new Request("http://test", { method: "POST", headers: { "x-forwarded-for": ip } }), params(t, id));
 
 describe("share link slides", () => {
-  it("downloads a published plan's slides with no sign-in", async () => {
+  it("downloads a published plan's slides with no app sign-in", async () => {
     const res = await pptx(token, published);
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toMatch(/presentationml/);
+  });
+
+  it("needs a Silverleaf email: without one, both routes answer 401", async () => {
+    access.ok = false;
+    try {
+      expect((await pptx(token, published)).status).toBe(401);
+      expect((await create(token, published)).status).toBe(401);
+    } finally {
+      access.ok = true;
+    }
   });
 
   it("refuses an unknown, malformed or draft target", async () => {

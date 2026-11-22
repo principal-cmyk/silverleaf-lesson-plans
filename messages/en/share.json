@@ -1,7 +1,7 @@
 {
   "share": {
     "heading": "Silverleaf lesson plans",
-    "intro": "Read any lesson plan and download its slides. You do not need to sign in. You can only look and download — nothing here can be changed.",
+    "intro": "Read any lesson plan and download its slides. Use your Silverleaf email to open this page. You can only look and download — nothing here can be changed.",
     "searchPlaceholder": "Search by lesson title",
     "search": "Search",
     "none": "No lesson plans found.",
@@ -32,7 +32,7 @@
     "admin": {
       "heading": "Teacher share links",
       "back": "← Lesson plans",
-      "intro": "A share link lets any teacher read the lesson plans and download slides without signing in. They cannot change anything. Anyone with the link can use it, so share it only with teachers. Turn a link off if it reaches the wrong people.",
+      "intro": "A share link lets anyone with a Silverleaf Academy email address (teachers and instructional leaders) read the lesson plans and download slides. They cannot change anything. Anyone with the link can try it, but must give a @silverleaf.co.tz address. Turn a link off if it reaches the wrong people.",
       "labelField": "Who is this link for?",
       "labelPlaceholder": "e.g. All teachers, Term 1",
       "create": "Create link",
@@ -61,6 +61,17 @@
     "rowMetaFull": "{grade} · {subject} · T{term} · W{week} · L{lesson}",
     "breadcrumb": "You are here",
     "backToFolder": "← Back to {grade} · {subject} · Term {term}",
-    "chooseTerm": "Choose a term"
+    "chooseTerm": "Choose a term",
+    "access": {
+      "heading": "Sign in with your school email",
+      "body": "This link is for Silverleaf Academy staff. Enter your Silverleaf email address (name@silverleaf.co.tz) to open it.",
+      "placeholder": "name@silverleaf.co.tz",
+      "submit": "Continue",
+      "error": {
+        "not-school-email": "Please use your Silverleaf Academy email address (ending @silverleaf.co.tz).",
+        "invalid-input": "Please enter your email address.",
+        "failed": "Something went wrong. Please try again."
+      }
+    }
   }
 }

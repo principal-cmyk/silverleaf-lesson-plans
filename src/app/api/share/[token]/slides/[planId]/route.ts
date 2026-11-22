@@ -6,6 +6,7 @@
  */
 import { ensureDeck } from "@/lib/slides/generate";
 import { loadSharedPlan } from "@/lib/share/access";
+import { hasShareAccess } from "@/lib/share/viewer";
 import { callerId, perCallerLimit, perLinkLimit } from "@/lib/share/rateLimit";
 
 export const runtime = "nodejs";
@@ -19,6 +20,7 @@ export async function POST(
   { params }: { params: Promise<{ token: string; planId: string }> },
 ): Promise<Response> {
   const { token, planId } = await params;
+  if (!(await hasShareAccess())) return fail("sign-in-required", 401);
   const plan = await loadSharedPlan(token, planId);
   if (!plan) return fail("not-found", 404);
 

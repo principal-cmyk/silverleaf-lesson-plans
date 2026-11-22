@@ -8,8 +8,10 @@ import { lessonPlans } from "@/lib/db/schema";
 import { gradeLabel } from "@/lib/naming/grade";
 import { subjectLabel } from "@/lib/naming/subjectLabel";
 import { findActiveShareLink } from "@/lib/share/links";
+import { hasShareAccess } from "@/lib/share/viewer";
 
 import styles from "../share.module.css";
+import ShareSignIn from "./ShareSignIn";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +43,8 @@ export default async function SharedLibraryPage({
       </main>
     );
   }
+
+  if (!(await hasShareAccess())) return <ShareSignIn />;
 
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";

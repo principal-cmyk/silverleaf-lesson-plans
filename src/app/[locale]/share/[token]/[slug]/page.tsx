@@ -16,11 +16,13 @@ import { gradeLabel } from "@/lib/naming/grade";
 import { subjectLabel } from "@/lib/naming/subjectLabel";
 import { titledFilename } from "@/lib/naming/titled";
 import { findActiveShareLink } from "@/lib/share/links";
+import { hasShareAccess } from "@/lib/share/viewer";
 import { isFresh, loadDeck } from "@/lib/slides/store";
 
 import PlanVersionSwitch from "../../../plans/[slug]/PlanVersionSwitch";
 import planStyles from "../../../plans/[slug]/plan.module.css";
 import styles from "../../share.module.css";
+import ShareSignIn from "../ShareSignIn";
 import ShareSlides from "../ShareSlides";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +44,7 @@ export default async function SharedPlanPage({
 }) {
   const { token, slug } = await params;
   if (!(await findActiveShareLink(token))) notFound();
+  if (!(await hasShareAccess())) return <ShareSignIn />;
 
   const [plan] = await db
     .select()

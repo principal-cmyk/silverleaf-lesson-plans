@@ -7,6 +7,7 @@
 import { planPptx } from "@/lib/slides/planPptx";
 import { slidesFileName } from "@/lib/slides/fileName";
 import { loadSharedPlan } from "@/lib/share/access";
+import { hasShareAccess } from "@/lib/share/viewer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ token: string; planId: string }> },
 ): Promise<Response> {
   const { token, planId } = await params;
+  if (!(await hasShareAccess())) return Response.json({ error: "sign-in-required" }, { status: 401 });
   const plan = await loadSharedPlan(token, planId);
   if (!plan) return Response.json({ error: "not-found" }, { status: 404 });
 

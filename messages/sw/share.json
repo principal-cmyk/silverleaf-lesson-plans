@@ -1,7 +1,7 @@
 {
   "share": {
     "heading": "Mipango ya masomo ya Silverleaf",
-    "intro": "Soma mpango wowote wa somo na upakue slaidi zake. Huhitaji kuingia. Unaweza kusoma na kupakua tu — hakuna kinachoweza kubadilishwa hapa.",
+    "intro": "Soma mpango wowote wa somo na upakue slaidi zake. Tumia barua pepe yako ya Silverleaf kufungua ukurasa huu. Unaweza kusoma na kupakua tu — hakuna kinachoweza kubadilishwa hapa.",
     "searchPlaceholder": "Tafuta kwa jina la somo",
     "search": "Tafuta",
     "none": "Hakuna mipango ya masomo iliyopatikana.",
@@ -32,7 +32,7 @@
     "admin": {
       "heading": "Viungo vya kushiriki na walimu",
       "back": "← Mipango ya masomo",
-      "intro": "Kiungo cha kushiriki humruhusu mwalimu yeyote kusoma mipango ya masomo na kupakua slaidi bila kuingia. Hawawezi kubadilisha chochote. Yeyote mwenye kiungo anaweza kukitumia, kwa hiyo wapatie walimu tu. Zima kiungo kikifika kwa watu wasiofaa.",
+      "intro": "Kiungo cha kushiriki humruhusu yeyote mwenye barua pepe ya Silverleaf Academy (walimu na viongozi wa kitaaluma) kusoma mipango ya masomo na kupakua slaidi. Hawawezi kubadilisha chochote. Mtu anaweza kufungua kiungo lakini lazima aweke barua pepe ya @silverleaf.co.tz. Zima kiungo kikifika kwa watu wasiofaa.",
       "labelField": "Kiungo hiki ni cha nani?",
       "labelPlaceholder": "mfano: Walimu wote, Muhula 1",
       "create": "Tengeneza kiungo",
@@ -61,6 +61,17 @@
     "rowMetaFull": "{grade} · {subject} · M{term} · W{week} · S{lesson}",
     "breadcrumb": "Uko hapa",
     "backToFolder": "← Rudi {grade} · {subject} · Muhula {term}",
-    "chooseTerm": "Chagua muhula"
+    "chooseTerm": "Chagua muhula",
+    "access": {
+      "heading": "Ingia kwa barua pepe ya shule",
+      "body": "Kiungo hiki ni cha wafanyakazi wa Silverleaf Academy. Weka barua pepe yako ya Silverleaf (jina@silverleaf.co.tz) ili kukifungua.",
+      "placeholder": "jina@silverleaf.co.tz",
+      "submit": "Endelea",
+      "error": {
+        "not-school-email": "Tafadhali tumia barua pepe yako ya Silverleaf Academy (inayoishia @silverleaf.co.tz).",
+        "invalid-input": "Tafadhali weka barua pepe yako.",
+        "failed": "Kuna tatizo. Tafadhali jaribu tena."
+      }
+    }
   }
 }
