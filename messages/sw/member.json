@@ -17,7 +17,17 @@
       "invalidInput": "Tafadhali weka barua pepe yako ya kazi na Kitambulisho cha mfanyakazi.",
       "failed": "Hatukuweza kukuingiza. Tafadhali jaribu tena.",
       "submitting": "Subiri kidogo…",
-      "continue": "Endelea"
+      "continue": "Endelea",
+      "codeSent": "Tumetuma nambari yenye tarakimu 6 kwenda {email}. Iandike hapa chini. Inatumika mara moja na huisha baada ya dakika 10.",
+      "codeLabel": "Nambari kutoka barua pepe yako",
+      "codePlaceholder": "123456",
+      "sendCode": "Nitumie nambari kwa barua pepe",
+      "resend": "Tuma nambari mpya",
+      "changeEmail": "Tumia barua pepe nyingine",
+      "invalidCode": "Nambari si sahihi au imeisha muda. Angalia barua pepe yako, au omba nambari mpya.",
+      "tooSoon": "Nambari imetumwa sasa hivi. Tafadhali subiri dakika moja kabla ya kuomba nyingine.",
+      "tooMany": "Nambari nyingi sana zimeombwa. Tafadhali jaribu tena baadaye.",
+      "sendFailed": "Hatukuweza kutuma nambari. Tafadhali jaribu tena."
     },
     "header": {
       "title": "Kituo cha Mafunzo ya Awali",

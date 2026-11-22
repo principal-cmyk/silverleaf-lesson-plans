@@ -70,8 +70,17 @@
       "error": {
         "not-school-email": "Tafadhali tumia barua pepe yako ya Silverleaf Academy (inayoishia @silverleaf.co.tz).",
         "invalid-input": "Tafadhali weka barua pepe yako.",
-        "failed": "Kuna tatizo. Tafadhali jaribu tena."
-      }
+        "failed": "Kuna tatizo. Tafadhali jaribu tena.",
+        "invalid-code": "Nambari si sahihi au imeisha muda. Angalia barua pepe yako, au omba nambari mpya.",
+        "too-soon": "Nambari imetumwa sasa hivi. Tafadhali subiri dakika moja kabla ya kuomba nyingine.",
+        "too-many": "Nambari nyingi sana zimeombwa. Tafadhali jaribu tena baadaye.",
+        "send-failed": "Hatukuweza kutuma nambari. Tafadhali jaribu tena."
+      },
+      "codeSent": "Tumetuma nambari yenye tarakimu 6 kwenda {email}. Iandike ili kufungua kiungo. Inatumika mara moja na huisha baada ya dakika 10.",
+      "codePlaceholder": "Nambari ya tarakimu 6",
+      "sendCode": "Nitumie nambari kwa barua pepe",
+      "resend": "Tuma nambari mpya",
+      "changeEmail": "Tumia barua pepe nyingine"
     }
   }
 }

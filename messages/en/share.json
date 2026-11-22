@@ -70,8 +70,17 @@
       "error": {
         "not-school-email": "Please use your Silverleaf Academy email address (ending @silverleaf.co.tz).",
         "invalid-input": "Please enter your email address.",
-        "failed": "Something went wrong. Please try again."
-      }
+        "failed": "Something went wrong. Please try again.",
+        "invalid-code": "That code is not correct or has expired. Check your email, or ask for a new code.",
+        "too-soon": "A code was just sent. Please wait a minute before asking for another.",
+        "too-many": "Too many codes were requested. Please try again later.",
+        "send-failed": "We could not send the code. Please try again."
+      },
+      "codeSent": "We sent a 6-digit code to {email}. Enter it to open the link. It works once and expires in 10 minutes.",
+      "codePlaceholder": "6-digit code",
+      "sendCode": "Email me a code",
+      "resend": "Send a new code",
+      "changeEmail": "Use a different email"
     }
   }
 }

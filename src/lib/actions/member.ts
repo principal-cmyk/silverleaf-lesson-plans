@@ -8,6 +8,9 @@
 import { redirect } from "next/navigation";
 
 import { signIn, signOut } from "@/lib/auth";
+import { consumeLoginCode } from "@/lib/auth/loginCode";
+import { isLoginCodeRequired } from "@/lib/auth/loginCodePolicy";
+import { resolveSessionSecret } from "@/lib/auth/session-codec";
 import { verifyEdAdminStaff } from "@/lib/auth/ed-admin";
 import { STAFF_EMAIL_DOMAIN, isStaffIdRequired } from "@/lib/auth/staffIdPolicy";
 import type { ActionResult } from "@/lib/contracts";
@@ -20,12 +23,13 @@ import { normalizeStaffEmail } from "@/lib/email";
  * - "not-registered" → email + Staff ID don't match a known account.
  * - "inactive"       → matched account is disabled.
  * - "invalid-input"  → email or Staff ID was empty.
+ * - "invalid-code"  → the emailed one-time code was wrong, used or expired.
  * - "failed"         → the directory could not be reached, the deployment is
  *                      misconfigured (no directory token in production), or
  *                      another error.
  */
 export type SignInResult = ActionResult<
-  "not-registered" | "inactive" | "invalid-input" | "failed"
+  "not-registered" | "inactive" | "invalid-input" | "invalid-code" | "failed"
 >;
 
 /**
@@ -55,11 +59,21 @@ function isDemoAuthAllowed(): boolean {
 export async function signInMemberAction(input: {
   email: string;
   staffId: string;
+  /** The emailed one-time code; required whenever email is configured. */
+  code?: string;
 }): Promise<SignInResult> {
   const email = normalizeStaffEmail(input.email);
   const staffId = input.staffId?.trim() ?? "";
   if (!email || (isStaffIdRequired() && !staffId)) {
     return { ok: false, error: "invalid-input" };
+  }
+
+  // Proof of mailbox ownership comes first, so a wrong code reveals nothing.
+  if (
+    isLoginCodeRequired() &&
+    !consumeLoginCode(email, input.code ?? "", resolveSessionSecret(env.SESSION_SECRET, env.NODE_ENV))
+  ) {
+    return { ok: false, error: "invalid-code" };
   }
 
   try {

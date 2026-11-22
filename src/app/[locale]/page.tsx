@@ -2,6 +2,8 @@ import { setRequestLocale } from "next-intl/server";
 
 import { getCurrentUser } from "@/lib/auth";
 import { signInMemberAction } from "@/lib/actions/member";
+import { requestLoginCodeAction } from "@/lib/actions/loginCode";
+import { isLoginCodeRequired } from "@/lib/auth/loginCodePolicy";
 import { redirect } from "@/i18n/navigation";
 import { findLatestActiveShareLink } from "@/lib/share/links";
 import { isFeedbackHour } from "@/lib/time/eat";
@@ -38,6 +40,8 @@ export default async function HomePage({
   if (!user) {
     return <StaffRegistration
         onSubmit={signInMemberAction}
+        onRequestCode={requestLoginCodeAction}
+        codeRequired={isLoginCodeRequired()}
         requireStaffId={isStaffIdRequired()}
       />;
   }

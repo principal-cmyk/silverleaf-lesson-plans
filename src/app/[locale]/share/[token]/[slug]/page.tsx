@@ -22,6 +22,7 @@ import { isFresh, loadDeck } from "@/lib/slides/store";
 import PlanVersionSwitch from "../../../plans/[slug]/PlanVersionSwitch";
 import planStyles from "../../../plans/[slug]/plan.module.css";
 import styles from "../../share.module.css";
+import { isLoginCodeRequired } from "@/lib/auth/loginCodePolicy";
 import ShareSignIn from "../ShareSignIn";
 import ShareSlides from "../ShareSlides";
 
@@ -44,7 +45,7 @@ export default async function SharedPlanPage({
 }) {
   const { token, slug } = await params;
   if (!(await findActiveShareLink(token))) notFound();
-  if (!(await hasShareAccess())) return <ShareSignIn />;
+  if (!(await hasShareAccess())) return <ShareSignIn codeRequired={isLoginCodeRequired()} />;
 
   const [plan] = await db
     .select()

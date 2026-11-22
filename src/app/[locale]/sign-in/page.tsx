@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 
 import { getCurrentUser } from "@/lib/auth";
 import { signInMemberAction } from "@/lib/actions/member";
+import { requestLoginCodeAction } from "@/lib/actions/loginCode";
+import { isLoginCodeRequired } from "@/lib/auth/loginCodePolicy";
 import { isStaffIdRequired } from "@/lib/auth/staffIdPolicy";
 import StaffRegistration from "@/components/StaffRegistration";
 
@@ -38,6 +40,8 @@ export default async function SignInPage({
     <main>
       <StaffRegistration
         onSubmit={signInMemberAction}
+        onRequestCode={requestLoginCodeAction}
+        codeRequired={isLoginCodeRequired()}
         requireStaffId={isStaffIdRequired()}
       />
     </main>

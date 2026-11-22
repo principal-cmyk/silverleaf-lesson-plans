@@ -123,6 +123,19 @@ const envSchema = z.object({
   SEARCH_TRIGRAM: booleanFlag,
 
   /**
+   * SMTP account used to email one-time login codes (a Google Workspace
+   * mailbox + app password). When SMTP_USER and SMTP_PASSWORD are both set,
+   * teachers must enter an emailed code to sign in; otherwise sign-in is
+   * email-only. See `src/lib/mail/smtp.ts`.
+   */
+  SMTP_HOST: z.string().default("smtp.gmail.com"),
+  SMTP_PORT: z.coerce.number().int().default(465),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  /** "Silverleaf Lesson Plans <no-reply@silverleaf.co.tz>"; defaults to SMTP_USER. */
+  MAIL_FROM: z.string().optional(),
+
+  /**
    * Standard Next.js env — "development" | "production" | "test"
    */
   NODE_ENV: z
@@ -145,6 +158,11 @@ export const env: Env = envSchema.parse({
   ADMIN_PIN: process.env["ADMIN_PIN"],
   SESSION_SECRET: process.env["SESSION_SECRET"],
   AUTH_PROVIDER: process.env["AUTH_PROVIDER"],
+  SMTP_HOST: process.env["SMTP_HOST"] || undefined,
+  SMTP_PORT: process.env["SMTP_PORT"] || undefined,
+  SMTP_USER: process.env["SMTP_USER"] || undefined,
+  SMTP_PASSWORD: process.env["SMTP_PASSWORD"] || undefined,
+  MAIL_FROM: process.env["MAIL_FROM"] || undefined,
   ED_ADMIN_API_TOKEN: process.env["ED_ADMIN_API_TOKEN"],
   ALLOW_DEMO_AUTH: process.env["ALLOW_DEMO_AUTH"],
   ED_ADMIN_STAFF_API_URL: process.env["ED_ADMIN_STAFF_API_URL"],

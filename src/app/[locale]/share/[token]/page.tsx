@@ -11,6 +11,7 @@ import { findActiveShareLink } from "@/lib/share/links";
 import { hasShareAccess } from "@/lib/share/viewer";
 
 import styles from "../share.module.css";
+import { isLoginCodeRequired } from "@/lib/auth/loginCodePolicy";
 import ShareSignIn from "./ShareSignIn";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +45,7 @@ export default async function SharedLibraryPage({
     );
   }
 
-  if (!(await hasShareAccess())) return <ShareSignIn />;
+  if (!(await hasShareAccess())) return <ShareSignIn codeRequired={isLoginCodeRequired()} />;
 
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";

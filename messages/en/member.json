@@ -17,7 +17,17 @@
       "invalidInput": "Please enter both your work email and Staff ID.",
       "failed": "Could not sign you in. Please try again.",
       "submitting": "One moment…",
-      "continue": "Continue"
+      "continue": "Continue",
+      "codeSent": "We sent a 6-digit code to {email}. Enter it below. It works once and expires in 10 minutes.",
+      "codeLabel": "Code from your email",
+      "codePlaceholder": "123456",
+      "sendCode": "Email me a code",
+      "resend": "Send a new code",
+      "changeEmail": "Use a different email",
+      "invalidCode": "That code is not correct or has expired. Check your email, or ask for a new code.",
+      "tooSoon": "A code was just sent. Please wait a minute before asking for another.",
+      "tooMany": "Too many codes were requested. Please try again later.",
+      "sendFailed": "We could not send the code. Please try again."
     },
     "header": {
       "title": "Onboarding Hub",
