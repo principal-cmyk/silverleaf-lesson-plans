@@ -29,6 +29,17 @@ export async function findActiveShareLink(token: string): Promise<ShareLink | nu
   return row ?? null;
 }
 
+/** The most recently created working link, or null when none is on. */
+export async function findLatestActiveShareLink(): Promise<ShareLink | null> {
+  const [row] = await db
+    .select()
+    .from(shareLinks)
+    .where(isNull(shareLinks.revokedAt))
+    .orderBy(desc(shareLinks.createdAt))
+    .limit(1);
+  return row ?? null;
+}
+
 export async function createShareLink(label: string, createdBy: string): Promise<ShareLink> {
   const [row] = await db
     .insert(shareLinks)

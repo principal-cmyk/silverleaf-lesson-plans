@@ -37,11 +37,14 @@ export interface StaffRegistrationProps {
   }) => Promise<StaffRegistrationResult>;
   /** Whether the server/db is reachable (offline notice when false). */
   dbOnline?: boolean;
+  /** Show and require the ed-admin Staff ID field. Defaults to true. */
+  requireStaffId?: boolean;
 }
 
 export default function StaffRegistration({
   onSubmit,
   dbOnline = true,
+  requireStaffId = true,
 }: StaffRegistrationProps) {
   const t = useTranslations("member");
   const router = useRouter();
@@ -66,13 +69,17 @@ export default function StaffRegistration({
 
       switch (result.error) {
         case "not-registered":
-          setError(t("register.notRegistered"));
+          setError(
+            t(requireStaffId ? "register.notRegistered" : "register.notSchoolEmail"),
+          );
           break;
         case "inactive":
           setError(t("register.inactive"));
           break;
         case "invalid-input":
-          setError(t("register.invalidInput"));
+          setError(
+            t(requireStaffId ? "register.invalidInput" : "register.invalidEmail"),
+          );
           break;
         default:
           setError(t("register.failed"));
@@ -95,7 +102,9 @@ export default function StaffRegistration({
           className={styles.regLogo}
         />
         <h1>{t("register.welcome")}</h1>
-        <p className={styles.regSub}>{t("register.subtitle")}</p>
+        <p className={styles.regSub}>
+          {t(requireStaffId ? "register.subtitle" : "register.subtitleEmailOnly")}
+        </p>
 
         {!dbOnline && (
           <p className={styles.regOffline}>{t("register.offline")}</p>
@@ -114,18 +123,20 @@ export default function StaffRegistration({
             />
           </label>
 
-          <label>
-            {t("register.idLabel")}{" "}
-            <span className={styles.optional}>{t("register.idHint")}</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={staffId}
-              onChange={(e) => setStaffId(e.target.value)}
-              placeholder={t("register.idPlaceholder")}
-              required
-            />
-          </label>
+          {requireStaffId && (
+            <label>
+              {t("register.idLabel")}{" "}
+              <span className={styles.optional}>{t("register.idHint")}</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={staffId}
+                onChange={(e) => setStaffId(e.target.value)}
+                placeholder={t("register.idPlaceholder")}
+                required
+              />
+            </label>
+          )}
 
           {error && <p className={styles.regError}>{error}</p>}
 

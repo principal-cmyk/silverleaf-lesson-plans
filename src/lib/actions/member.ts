@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 
 import { signIn, signOut } from "@/lib/auth";
 import { verifyEdAdminStaff } from "@/lib/auth/ed-admin";
+import { STAFF_EMAIL_DOMAIN, isStaffIdRequired } from "@/lib/auth/staffIdPolicy";
 import type { ActionResult } from "@/lib/contracts";
 import { staffRepo } from "@/lib/db/repositories";
 import { env } from "@/lib/env";
@@ -57,7 +58,7 @@ export async function signInMemberAction(input: {
 }): Promise<SignInResult> {
   const email = normalizeStaffEmail(input.email);
   const staffId = input.staffId?.trim() ?? "";
-  if (!email || !staffId) {
+  if (!email || (isStaffIdRequired() && !staffId)) {
     return { ok: false, error: "invalid-input" };
   }
 
@@ -72,9 +73,13 @@ export async function signInMemberAction(input: {
         );
         return { ok: false, error: "failed" };
       }
+      // Email-only: any school address may sign in; the staff row is created
+      // on first sign-in by the auth provider.
+      if (!email.endsWith(STAFF_EMAIL_DOMAIN)) {
+        return { ok: false, error: "not-registered" };
+      }
       const staff = await staffRepo.findStaffByEmail(email);
-      if (!staff) return { ok: false, error: "not-registered" };
-      await signIn(email, staff.fullName ?? undefined);
+      await signIn(email, staff?.fullName ?? undefined);
       return { ok: true };
     }
 

@@ -3,6 +3,9 @@
     "register": {
       "welcome": "Welcome",
       "subtitle": "Sign in with your work email and ed admin Staff ID.",
+      "subtitleEmailOnly": "Sign in with your Silverleaf work email.",
+      "notSchoolEmail": "Please use your Silverleaf work email (ending in @silverleaf.co.tz).",
+      "invalidEmail": "Please enter your work email.",
       "offline": "Offline mode — progress saves on this device only.",
       "emailLabel": "Work email",
       "emailPlaceholder": "you@silverleaf.co.tz",

@@ -3,6 +3,9 @@
     "register": {
       "welcome": "Karibu",
       "subtitle": "Ingia kwa barua pepe yako ya kazi na Kitambulisho chako cha mfanyakazi cha ed admin.",
+      "subtitleEmailOnly": "Ingia kwa barua pepe yako ya kazi ya Silverleaf.",
+      "notSchoolEmail": "Tafadhali tumia barua pepe yako ya kazi ya Silverleaf (inayoishia @silverleaf.co.tz).",
+      "invalidEmail": "Tafadhali andika barua pepe yako ya kazi.",
       "offline": "Hali ya nje ya mtandao — maendeleo yanahifadhiwa kwenye kifaa hiki pekee.",
       "emailLabel": "Barua pepe ya kazi",
       "emailPlaceholder": "wewe@silverleaf.co.tz",

@@ -2,7 +2,10 @@ import { setRequestLocale } from "next-intl/server";
 
 import { getCurrentUser } from "@/lib/auth";
 import { signInMemberAction } from "@/lib/actions/member";
+import { redirect } from "@/i18n/navigation";
+import { findLatestActiveShareLink } from "@/lib/share/links";
 import { isFeedbackHour } from "@/lib/time/eat";
+import { isStaffIdRequired } from "@/lib/auth/staffIdPolicy";
 import StaffRegistration from "@/components/StaffRegistration";
 import FeedbackHourHome from "@/components/lesson/FeedbackHourHome";
 import NormalHome from "@/components/lesson/NormalHome";
@@ -13,7 +16,10 @@ import NormalHome from "@/components/lesson/NormalHome";
  * - Unauthenticated → the StaffRegistration sign-in overlay.
  * - Authenticated during the daily Feedback Hour (15:00–17:00 EAT) →
  *   <FeedbackHourHome /> (Feedback vertical).
- * - Authenticated otherwise → <NormalHome /> (search + your next lessons).
+ * - Authenticated teacher otherwise → the folder library (grade → subject →
+ *   term → lessons), i.e. the working share link's page. Admins, and any
+ *   deployment with no working share link, get <NormalHome /> (search + your
+ *   next lessons).
  *
  * Dynamic: reads the session cookie and the server clock, so it must render
  * per-request (never prerendered or cached).
@@ -30,8 +36,18 @@ export default async function HomePage({
 
   const user = await getCurrentUser();
   if (!user) {
-    return <StaffRegistration onSubmit={signInMemberAction} />;
+    return <StaffRegistration
+        onSubmit={signInMemberAction}
+        requireStaffId={isStaffIdRequired()}
+      />;
   }
 
-  return isFeedbackHour() ? <FeedbackHourHome /> : <NormalHome />;
+  if (isFeedbackHour()) return <FeedbackHourHome />;
+
+  if (!user.isAdmin) {
+    const link = await findLatestActiveShareLink();
+    if (link) redirect({ href: `/share/${link.token}`, locale });
+  }
+
+  return <NormalHome />;
 }

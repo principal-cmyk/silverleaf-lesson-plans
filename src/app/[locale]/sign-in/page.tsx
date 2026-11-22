@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 
 import { getCurrentUser } from "@/lib/auth";
 import { signInMemberAction } from "@/lib/actions/member";
+import { isStaffIdRequired } from "@/lib/auth/staffIdPolicy";
 import StaffRegistration from "@/components/StaffRegistration";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +36,10 @@ export default async function SignInPage({
 
   return (
     <main>
-      <StaffRegistration onSubmit={signInMemberAction} />
+      <StaffRegistration
+        onSubmit={signInMemberAction}
+        requireStaffId={isStaffIdRequired()}
+      />
     </main>
   );
 }
