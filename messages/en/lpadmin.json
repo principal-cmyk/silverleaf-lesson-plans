@@ -54,7 +54,7 @@
         "noActivityYet": "no activity yet",
         "actionsCount": "{count, plural, =0 {0 actions} one {# action} other {# actions}}",
         "trendHeading": "Activity over time",
-        "trendDescription": "Actions per day over the last 14 days.",
+        "trendDescription": "Actions per day over the last {days} days.",
         "trendAria": "Daily activity over the last {days} days",
         "trendEmpty": "No activity in this period.",
         "barTitle": "{date}: {events} actions, {teachers} teachers",
@@ -74,6 +74,23 @@
           "total": "Total",
           "lastActive": "Last active",
           "status": "Status"
+        },
+        "range": {
+          "label": "Date range",
+          "days": "Last {days} days",
+          "all": "All time"
+        },
+        "trendDescriptionAll": "Actions per day over the last 90 days.",
+        "teacherPage": {
+          "back": "Back to dashboard",
+          "heading": "Plans opened by {name}",
+          "empty": "No plans opened in this period.",
+          "plan": "Plan",
+          "gradeSubject": "Grade · Subject",
+          "opens": "Opens",
+          "downloads": "Downloads",
+          "last": "Last opened",
+          "notFound": "Teacher not found."
         }
       },
       "views": "{count, plural, =0 {0 views} one {# view} other {# views}}",

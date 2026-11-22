@@ -13,6 +13,8 @@ import type {
   ActivityTrendDay,
   TeacherActivity,
 } from "@/lib/admin/insights";
+import { Link } from "@/i18n/navigation";
+import { RANGE_OPTIONS, type RangeOption } from "@/lib/admin/range";
 import styles from "./TeacherActivityPanel.module.css";
 
 /** Short, locale-stable date (matches the dashboard's other dates). */
@@ -28,9 +30,11 @@ function dayLabel(key: string): string {
 export default async function TeacherActivityPanel({
   roster,
   trend,
+  range,
 }: {
   roster: TeacherActivity[];
   trend: ActivityTrendDay[];
+  range: RangeOption;
 }) {
   const t = await getTranslations("lpAdmin.dashboard.teacherActivity");
 
@@ -45,6 +49,29 @@ export default async function TeacherActivityPanel({
       <div>
         <h2 className={styles.heading}>{t("heading")}</h2>
         <p className={styles.description}>{t("description")}</p>
+
+        <nav
+          aria-label={t("range.label")}
+          style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", margin: "0.75rem 0" }}
+        >
+          {RANGE_OPTIONS.map((r) => (
+            <Link
+              key={r}
+              href={`/admin?range=${r}`}
+              aria-current={r === range ? "true" : undefined}
+              style={{
+                padding: "0.25rem 0.75rem",
+                borderRadius: 999,
+                border: "1px solid currentColor",
+                textDecoration: "none",
+                fontWeight: r === range ? 700 : 400,
+                opacity: r === range ? 1 : 0.7,
+              }}
+            >
+              {r === "all" ? t("range.all") : t("range.days", { days: Number(r) })}
+            </Link>
+          ))}
+        </nav>
 
         {/* Highlights */}
         <div className={styles.stats}>
@@ -77,7 +104,7 @@ export default async function TeacherActivityPanel({
         <h2 id="ta-trend" className={styles.heading}>
           {t("trendHeading")}
         </h2>
-        <p className={styles.description}>{t("trendDescription")}</p>
+        <p className={styles.description}>{range === "all" ? t("trendDescriptionAll") : t("trendDescription", { days: Number(range) })}</p>
         {trendHasData ? (
           <div
             className={styles.chart}
@@ -145,7 +172,12 @@ export default async function TeacherActivityPanel({
                   <tr key={r.staffId}>
                     <td>
                       <span className={styles.teacherCell}>
-                        <span className={styles.teacherName}>{r.fullName}</span>
+                        <Link
+                          href={`/admin/teachers/${r.staffId}?range=${range}`}
+                          className={styles.teacherName}
+                        >
+                          {r.fullName}
+                        </Link>
                         <span className={styles.teacherEmail}>{r.email}</span>
                       </span>
                     </td>

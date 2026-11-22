@@ -15,7 +15,11 @@ import {
   searchMisses,
   staff,
 } from "@/lib/db/schema";
-import { getActivityTrend, getTeacherActivity } from "./insights";
+import {
+  getActivityTrend,
+  getTeacherActivity,
+  getTeacherPlanAccess,
+} from "./insights";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -139,5 +143,28 @@ describe("teacher-activity insights", () => {
     const todayBucket = trend.find((d) => d.day === today);
     expect(todayBucket?.events).toBe(4);
     expect(todayBucket?.activeTeachers).toBe(1);
+  });
+
+  it("windows counts by days and lists the plans a teacher opened", async () => {
+    const now = new Date();
+    const old = new Date(now.getTime() - 30 * DAY_MS);
+    const t = (
+      await db.insert(staff).values({ email: "t@x.co", fullName: "T" }).returning()
+    )[0]!;
+    const planA = await insertPlan("a");
+    const planB = await insertPlan("b");
+    await db.insert(planUsageEvents).values([
+      { staffId: t.id, planId: planA, eventType: "view", occurredAt: now },
+      { staffId: t.id, planId: planA, eventType: "download", occurredAt: now },
+      { staffId: t.id, planId: planB, eventType: "view", occurredAt: old },
+    ]);
+
+    expect((await getTeacherActivity(7))[0]!.planViews).toBe(2);
+    expect((await getTeacherActivity(null))[0]!.planViews).toBe(3);
+
+    const recent = await getTeacherPlanAccess(t.id, 7);
+    expect(recent).toHaveLength(1);
+    expect(recent[0]).toMatchObject({ slug: "a", events: 2, downloads: 1 });
+    expect(await getTeacherPlanAccess(t.id, null)).toHaveLength(2);
   });
 });

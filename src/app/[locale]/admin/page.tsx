@@ -14,6 +14,7 @@ import {
   getTeacherActivity,
   type PlanViewCount,
 } from "@/lib/admin/insights";
+import { parseRange, rangeDays, trendDays } from "@/lib/admin/range";
 import InsightCards from "@/components/admin/InsightCards";
 import TeacherActivityPanel from "@/components/admin/TeacherActivityPanel";
 
@@ -115,8 +116,13 @@ function PlanViewList({
  * fetches every aggregate concurrently and lays them out as mobile-first cards
  * and sections.
  */
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
   await requireAdmin();
+  const range = parseRange((await searchParams).range);
 
   const t = await getTranslations("lpAdmin.dashboard");
   const viewsLabel = (views: number) => t("views", { count: views });
@@ -139,8 +145,8 @@ export default async function AdminPage() {
     getLowestRatedPlans(8),
     getRecentComments(8),
     getFeedbackHourParticipation(),
-    getTeacherActivity(),
-    getActivityTrend(),
+    getTeacherActivity(rangeDays(range)),
+    getActivityTrend(trendDays(range)),
   ]);
 
   return (
@@ -163,6 +169,7 @@ export default async function AdminPage() {
         <TeacherActivityPanel
           roster={teacherActivity}
           trend={activityTrend}
+          range={range}
         />
 
         {/* Most viewed */}

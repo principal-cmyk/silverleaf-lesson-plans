@@ -14,7 +14,7 @@ import "server-only";
  * aggregates come back as strings from the PG wire protocol — we coerce with
  * `Number(...)` and round at the edge.
  */
-import { and, desc, eq, gt, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, isNotNull, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -391,7 +391,14 @@ export async function getFeedbackHourParticipation(): Promise<FeedbackHourPartic
  * admin can see who has *never* engaged. Sorted most-active first
  * (totalActions desc, then most-recently-active).
  */
-export async function getTeacherActivity(): Promise<TeacherActivity[]> {
+export async function getTeacherActivity(
+  days: number | null = null,
+): Promise<TeacherActivity[]> {
+  // `days` windows the per-signal COUNTS; `lastActiveAt` / `isActive` stay
+  // all-time so a quiet window never relabels a teacher who logged in today.
+  const since = (col: Parameters<typeof gte>[0]): SQL | undefined =>
+    days == null ? undefined : gte(col, sql`now() - ${`${days} days`}::interval`);
+
   const [staffRows, usageRows, feedbackRows, searchRows] = await Promise.all([
     db
       .select({
@@ -409,6 +416,7 @@ export async function getTeacherActivity(): Promise<TeacherActivity[]> {
         lastAt: sql<string | null>`max(${planUsageEvents.occurredAt})`,
       })
       .from(planUsageEvents)
+      .where(since(planUsageEvents.occurredAt))
       .groupBy(planUsageEvents.staffId),
     db
       .select({
@@ -417,6 +425,7 @@ export async function getTeacherActivity(): Promise<TeacherActivity[]> {
         lastAt: sql<string | null>`max(${planFeedback.createdAt})`,
       })
       .from(planFeedback)
+      .where(since(planFeedback.createdAt))
       .groupBy(planFeedback.staffId),
     db
       .select({
@@ -425,6 +434,7 @@ export async function getTeacherActivity(): Promise<TeacherActivity[]> {
         lastAt: sql<string | null>`max(${searchMisses.occurredAt})`,
       })
       .from(searchMisses)
+      .where(since(searchMisses.occurredAt))
       .groupBy(searchMisses.staffId),
   ]);
 
@@ -541,4 +551,81 @@ export async function getActivityTrend(
   }
 
   return out;
+}
+
+
+// ---------------------------------------------------------------------------
+// Per-teacher plan access
+// ---------------------------------------------------------------------------
+
+export interface TeacherPlanAccess {
+  planId: string;
+  slug: string;
+  title: string;
+  subject: string;
+  grade: string;
+  /** Total view + open + download events in the window. */
+  events: number;
+  downloads: number;
+  lastAt: Date;
+}
+
+/** One teacher's profile row, or null when the id is unknown / malformed. */
+export async function getStaffSummary(staffId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(staffId)) return null;
+  const [row] = await db
+    .select({
+      id: staff.id,
+      fullName: staff.fullName,
+      email: staff.email,
+      campus: staff.campus,
+    })
+    .from(staff)
+    .where(eq(staff.id, staffId))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Every plan one teacher has touched (most recent first), with event counts.
+ * `days = null` means all time.
+ */
+export async function getTeacherPlanAccess(
+  staffId: string,
+  days: number | null = null,
+): Promise<TeacherPlanAccess[]> {
+  const rows = await db
+    .select({
+      planId: lessonPlans.id,
+      slug: lessonPlans.slug,
+      title: lessonPlans.title,
+      subject: lessonPlans.subject,
+      grade: lessonPlans.grade,
+      events: sql<number>`count(${planUsageEvents.id})`.mapWith(Number),
+      downloads:
+        sql<number>`count(*) filter (where ${planUsageEvents.eventType} = 'download')`.mapWith(
+          Number,
+        ),
+      lastAt: sql<string>`max(${planUsageEvents.occurredAt})`,
+    })
+    .from(planUsageEvents)
+    .innerJoin(lessonPlans, eq(lessonPlans.id, planUsageEvents.planId))
+    .where(
+      and(
+        eq(planUsageEvents.staffId, staffId),
+        days == null
+          ? undefined
+          : gte(planUsageEvents.occurredAt, sql`now() - ${`${days} days`}::interval`),
+      ),
+    )
+    .groupBy(
+      lessonPlans.id,
+      lessonPlans.slug,
+      lessonPlans.title,
+      lessonPlans.subject,
+      lessonPlans.grade,
+    )
+    .orderBy(desc(sql`max(${planUsageEvents.occurredAt})`));
+
+  return rows.map((r) => ({ ...r, lastAt: new Date(r.lastAt) }));
 }
