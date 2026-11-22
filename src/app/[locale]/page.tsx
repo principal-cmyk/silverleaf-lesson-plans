@@ -16,12 +16,10 @@ import NormalHome from "@/components/lesson/NormalHome";
  * Teacher home.
  *
  * - Unauthenticated → the StaffRegistration sign-in overlay.
- * - Authenticated during the daily Feedback Hour (15:00–17:00 EAT) →
- *   <FeedbackHourHome /> (Feedback vertical).
- * - Authenticated teacher otherwise → the folder library (grade → subject →
+ * - Authenticated teacher (any time, including Feedback Hour) → the folder library (grade → subject →
  *   term → lessons), i.e. the working share link's page. Admins, and any
- *   deployment with no working share link, get <NormalHome /> (search + your
- *   next lessons).
+ *   deployment with no working share link, get <FeedbackHourHome /> during the
+ *   daily Feedback Hour (15:00–17:00 EAT), else <NormalHome />.
  *
  * Dynamic: reads the session cookie and the server clock, so it must render
  * per-request (never prerendered or cached).
@@ -46,12 +44,10 @@ export default async function HomePage({
       />;
   }
 
-  if (isFeedbackHour()) return <FeedbackHourHome />;
-
   if (!user.isAdmin) {
     const link = await findLatestActiveShareLink();
     if (link) redirect({ href: `/share/${link.token}`, locale });
   }
 
-  return <NormalHome />;
+  return isFeedbackHour() ? <FeedbackHourHome /> : <NormalHome />;
 }
