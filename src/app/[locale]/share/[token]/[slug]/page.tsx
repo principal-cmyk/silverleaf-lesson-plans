@@ -16,8 +16,9 @@ import { gradeLabel } from "@/lib/naming/grade";
 import { subjectLabel } from "@/lib/naming/subjectLabel";
 import { titledFilename } from "@/lib/naming/titled";
 import { findActiveShareLink } from "@/lib/share/links";
-import { hasShareAccess } from "@/lib/share/viewer";
+import { getShareViewerEmail, hasShareAccess } from "@/lib/share/viewer";
 import { isFresh, loadDeck } from "@/lib/slides/store";
+import { logUsageByEmail } from "@/lib/usage";
 
 import PlanVersionSwitch from "../../../plans/[slug]/PlanVersionSwitch";
 import planStyles from "../../../plans/[slug]/plan.module.css";
@@ -35,8 +36,8 @@ export const metadata: Metadata = {
 
 /**
  * One shared plan (no sign-in): both versions to read, the government form to
- * download, and the slides to download or create. Read-only by construction —
- * no feedback form, no usage logging, no admin tools, no server actions.
+ * download, and the slides to download or create. Read-only by construction (the only write is a best-effort view log) —
+ * no feedback form, no admin tools, no server actions.
  */
 export default async function SharedPlanPage({
   params,
@@ -53,6 +54,9 @@ export default async function SharedPlanPage({
     .where(and(eq(lessonPlans.slug, slug), eq(lessonPlans.status, "published")))
     .limit(1);
   if (!plan) notFound();
+
+  // Count the view for the admin dashboard when the viewer is a known teacher.
+  await logUsageByEmail(await getShareViewerEmail(), plan.id, "view");
 
   const t = await getTranslations("lpPlan");
   const ts = await getTranslations("share");

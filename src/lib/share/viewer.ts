@@ -63,3 +63,15 @@ export async function hasShareAccess(): Promise<boolean> {
   const user = await getCurrentUser();
   return !!user && isSchoolEmail(user.email);
 }
+
+/**
+ * The viewer's school email: from the share cookie, else the signed-in user.
+ * Null when neither proves a school address.
+ */
+export async function getShareViewerEmail(): Promise<string | null> {
+  const raw = (await cookies()).get(COOKIE)?.value;
+  const fromCookie = raw ? decodeShareCookie(raw) : null;
+  if (fromCookie) return normalizeStaffEmail(fromCookie);
+  const user = await getCurrentUser();
+  return user && isSchoolEmail(user.email) ? normalizeStaffEmail(user.email) : null;
+}

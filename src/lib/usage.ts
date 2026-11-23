@@ -8,8 +8,10 @@ import "server-only";
  * best-effort: a logging failure must never break a page render, so every
  * insert is wrapped in try/catch and swallowed (with a server-side warning).
  */
+import { eq } from "drizzle-orm";
+
 import { db } from "@/lib/db";
-import { planUsageEvents, type UsageEventType } from "@/lib/db/schema";
+import { planUsageEvents, staff, type UsageEventType } from "@/lib/db/schema";
 
 export type { UsageEventType };
 
@@ -43,5 +45,28 @@ export async function logUsage(
       eventType,
       error,
     });
+  }
+}
+
+/**
+ * Log a plan view for whoever holds `email`, when they are a known staff member
+ * (usage rows need a staff id). Used by share-link pages, where the viewer is
+ * identified only by a school email. Best-effort, never throws.
+ */
+export async function logUsageByEmail(
+  email: string | null,
+  planId: string,
+  eventType: UsageEventType = "view",
+): Promise<void> {
+  if (!email) return;
+  try {
+    const [row] = await db
+      .select({ id: staff.id })
+      .from(staff)
+      .where(eq(staff.email, email))
+      .limit(1);
+    if (row) await logUsage(row.id, planId, eventType);
+  } catch (error) {
+    console.warn("[usage] failed to resolve staff for usage event", { planId, error });
   }
 }
