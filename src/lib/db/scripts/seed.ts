@@ -46,10 +46,10 @@ import { seedSchemes, type SeededScheme } from "./seedSchemes";
 
 const DEMO_STAFF = [
   {
-    email: "hr@silverleaf.co.tz",
-    fullName: "HR Admin",
+    email: "principal@silverleaf.co.tz",
+    fullName: "Principal",
     campus: "Main",
-    jobTitle: "People Operations",
+    jobTitle: "Principal",
     isAdmin: true,
   },
   {

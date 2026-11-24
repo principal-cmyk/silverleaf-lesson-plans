@@ -3,7 +3,7 @@
  *
  * Applies DB migrations and seeds the dev PGlite database so that:
  *   - the sample lesson plans and prompt parts exist
- *   - demo staff rows (hr@, teacher@) exist
+ *   - demo staff rows (principal@, teacher@) exist
  *
  * The dev server is started BEFORE this file by Playwright's webServer config,
  * but globalSetup itself is invoked BEFORE any tests, and after the server is
@@ -39,10 +39,10 @@ export default async function globalSetup() {
   writeNonAdminFixture(match[1]!);
   console.log(`[e2e/global-setup] captured non-admin staff id ${match[1]}`);
 
-  // Also capture the seeded HR-admin (hr@) id, so specs that need an *admin*
+  // Also capture the seeded HR-admin (principal@) id, so specs that need an *admin*
   // session (the mobile-responsive sweep over /admin routes) can forge one.
   const adminMatch = seedOut.match(
-    /upserted\s+hr@silverleaf\.co\.tz\s+\(([0-9a-fA-F-]+)\)/,
+    /upserted\s+principal@silverleaf\.co\.tz\s+\(([0-9a-fA-F-]+)\)/,
   );
   if (!adminMatch) {
     throw new Error(

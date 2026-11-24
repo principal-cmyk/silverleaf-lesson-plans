@@ -44,7 +44,7 @@ email is matched against the seeded staff table):
 | Role    | Email                     | Staff ID    |
 | ------- | ------------------------- | ----------- |
 | Teacher | `teacher@silverleaf.co.tz` | any value   |
-| HR / admin | `hr@silverleaf.co.tz`   | any value   |
+| HR / admin | `principal@silverleaf.co.tz`   | any value   |
 
 The HR account reaches `/admin` directly after sign-in: `HR_ADMIN_EMAILS` alone
 grants admin — no PIN is involved (a PIN-based elevation backend exists but no

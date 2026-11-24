@@ -66,7 +66,7 @@ No environment variables are required for local development. Sign in at
 `/sign-in` with a seeded demo account and **any non-empty Staff ID**:
 
 - Teacher — `teacher@silverleaf.co.tz`
-- HR / admin — `hr@silverleaf.co.tz`
+- HR / admin — `principal@silverleaf.co.tz`
 
 ## Authentication
 

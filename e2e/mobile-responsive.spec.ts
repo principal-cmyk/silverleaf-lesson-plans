@@ -28,7 +28,7 @@ import {
 
 /**
  * Establish a signed-in ADMIN session by forging a session cookie for the
- * seeded `hr@silverleaf.co.tz` account (id captured by global-setup). An admin
+ * seeded `principal@silverleaf.co.tz` account (id captured by global-setup). An admin
  * session is required so the sweep actually lands on the /admin routes — a
  * non-admin would be redirected to /en, silently skipping them. The cookie is
  * signed with the e2e SESSION_SECRET pinned in playwright.config's

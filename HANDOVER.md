@@ -78,7 +78,7 @@ Do this, in order:
    a. /en renders the teacher home; /api/health returns "database":true
    b. sign in at /en/sign-in as teacher@silverleaf.co.tz with ANY Staff ID
       (local fallback auth), search for a plan, open its detail page
-   c. sign in as hr@silverleaf.co.tz (any Staff ID) and open /en/admin and
+   c. sign in as principal@silverleaf.co.tz (any Staff ID) and open /en/admin and
       /en/admin/ai-studio — admin access is granted at sign-in via the
       HR_ADMIN_EMAILS allow-list; no PIN is requested anywhere
    d. the AI Studio shows the scheme-of-work picker (panels: Scheme & Lesson,

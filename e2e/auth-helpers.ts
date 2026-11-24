@@ -72,7 +72,7 @@ export function readNonAdminStaffId(): string {
 export const ADMIN_FIXTURE = join(__dirname, ".admin-session.json");
 
 /**
- * Persist the seeded HR-admin (`hr@silverleaf.co.tz`) staff id. Specs needing a
+ * Persist the seeded HR-admin (`principal@silverleaf.co.tz`) staff id. Specs needing a
  * signed-in *admin* session (e.g. the mobile-responsive sweep over /admin
  * routes) forge a cookie for this id; the server grants admin because the email
  * is in HR_ADMIN_EMAILS — the ed-admin directory only gates the UI sign-in, not

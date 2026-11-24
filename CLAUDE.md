@@ -14,7 +14,7 @@ npm run dev       # http://localhost:3000
 ```
 
 Demo sign-in (any non-empty Staff ID): `teacher@silverleaf.co.tz` (teacher),
-`hr@silverleaf.co.tz` (admin).
+`principal@silverleaf.co.tz` (admin).
 
 The seed is deliberately small and real: one scheme of work parsed from
 `SOW-examples/grade2-health-environment-sow.docx`, plus six Grade 2 Term-1A

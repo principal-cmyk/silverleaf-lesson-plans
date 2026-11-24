@@ -135,7 +135,7 @@ export default defineConfig({
       /* `next dev` honours PORT (see E2E_PORT above; default 3000). */
       PORT: String(PORT),
       /* Point at the PGlite local DB (no external Postgres needed in dev). */
-      HR_ADMIN_EMAILS: "hr@silverleaf.co.tz",
+      HR_ADMIN_EMAILS: "principal@silverleaf.co.tz",
       /*
        * Pin the session-signing secret so the admin-gate spec can forge a
        * valid non-admin session cookie (see e2e/auth-helpers.ts). Like
