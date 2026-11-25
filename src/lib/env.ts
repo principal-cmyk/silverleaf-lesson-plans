@@ -136,6 +136,13 @@ const envSchema = z.object({
   MAIL_FROM: z.string().optional(),
 
   /**
+   * Public address teachers use to reach the app (e.g. a Cloudflare tunnel
+   * URL). When set, admin share links are built from it instead of the
+   * request's host. No trailing slash needed.
+   */
+  PUBLIC_APP_URL: z.url({ error: "PUBLIC_APP_URL must be a valid URL." }).optional(),
+
+  /**
    * Standard Next.js env — "development" | "production" | "test"
    */
   NODE_ENV: z
@@ -171,6 +178,7 @@ export const env: Env = envSchema.parse({
   AI_MODEL_ID: process.env["AI_MODEL_ID"],
   AI_OCR_MODEL_ID: process.env["AI_OCR_MODEL_ID"],
   SEARCH_TRIGRAM: process.env["SEARCH_TRIGRAM"],
+  PUBLIC_APP_URL: process.env["PUBLIC_APP_URL"] || undefined,
   NODE_ENV: process.env["NODE_ENV"],
 });
 
